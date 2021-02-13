@@ -10,10 +10,12 @@ import SwiftUI
 
 final class ImagePickerCoordinator: NSObject, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
  
-    var parent: ImagePicker
+    @Binding var image: UIImage?
+    @Binding var isPresented: Bool
     
-    init(_ parent: ImagePicker) {
-        self.parent = parent
+    init(image: Binding<UIImage?>, isPresented: Binding<Bool>) {
+        self._image = image
+        self._isPresented = isPresented
     }
  
     func imagePickerController(
@@ -21,9 +23,13 @@ final class ImagePickerCoordinator: NSObject, UIImagePickerControllerDelegate, U
         didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
     ) {
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-            parent.selectedImage = image.resize(toFitSquare: Int(Config.imageInset)).monochrome
+            self.image = image.resize(toFitSquare: Int(Config.imageInset)).monochrome
         }
  
-        parent.presentationMode.wrappedValue.dismiss()
+        isPresented = false
+    }
+    
+    func imagePickerControllerDidCancel(_ picker: UIImagePickerController) {
+        isPresented = false
     }
 }

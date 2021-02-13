@@ -11,122 +11,75 @@ struct ImageView: View {
     
     @Environment(\.colorScheme) var colorScheme
     
-    @State private var isCameraAvailable = UIImagePickerController.isSourceTypeAvailable(.camera)
-    @State private var isGalleryPresented = false
-    @State private var isCameraPresented = false
+    @State private var isPickerPresented = false
     
     @State private var image: UIImage? = nil
     @State private var imageDithered: UIImage? = nil
     @State private var frameColor: UIColor? = nil
     
     var body: some View {
-        VStack {
-            HStack {
-                Button(action: presentCamera) {
-                    HStack {
-                        Image(systemName: "camera").font(.system(size: 20))
-                        Text("camera").font(.headline)
+        NavigationView {
+            VStack {
+                Spacer()
+                imageView
+                Spacer()
+            }
+            .navigationBarTitle(Text("diig"), displayMode: .inline)
+            .toolbar {
+                ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
+                    Button(action: { isPickerPresented = true }) {
+                        Image(systemName: "plus.app.fill")
                     }
-                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
-                    .background(cameraButtonBackgroundColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                }
-                .disabled(!isCameraAvailable)
-                .sheet(isPresented: $isCameraPresented) {
-                    ImagePicker(selectedImage: self.$image, sourceType: .camera)
                 }
                 
-                Button(action: presentGallery) {
-                    HStack {
-                        Image(systemName: "photo").font(.system(size: 20))
-                        Text("photo library").font(.headline)
+                ToolbarItemGroup(placement: .bottomBar) {
+                    Button(action: ditherImage) {
+                        Image(systemName: "wand.and.rays")
                     }
-                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
-                    .background(Color.accentColor)
-                    .foregroundColor(.white)
-                    .cornerRadius(8)
-                }
-                .sheet(isPresented: $isGalleryPresented) {
-                    ImagePicker(selectedImage: self.$image, sourceType: .photoLibrary)
+                    .disabled(image == nil)
+                    
+                    Spacer()
+                    
+                    HStack {
+                        Button(action: {
+                            self.frameColor = nil
+                        }) {
+                            Image(systemName: "square.slash")
+                        }
+                        .frame(minWidth: 0, maxWidth: 48, minHeight: 0)
+                        .disabled(imageDithered == nil)
+                        
+                        Divider()
+                        
+                        Button(action: {
+                            self.frameColor = .white
+                        }) {
+                            Image(systemName: "square.fill")
+                        }
+                        .disabled(imageDithered == nil)
+                        
+                        Divider()
+                        
+                        Button(action: {
+                            self.frameColor = .black
+                        }) {
+                            Image(systemName: "square")
+                        }
+                        .disabled(imageDithered == nil)
+                    }
+                    
+                    Spacer()
+                    
+                    Button(action: shareImage) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
+                    .disabled(imageDithered == nil)
                 }
             }
-            .padding(.bottom)
-            .padding(.horizontal)
+            .sheet(isPresented: $isPickerPresented) {
+                ImagePicker(image: $image, isPresented: $isPickerPresented, sourceType: .photoLibrary)
+            }
         }
-        
-        Spacer()
-        
-        imageView
-        
-        Spacer()
-        
-        HStack {
-            Button(action: ditherImage) {
-                HStack {
-                    Image(systemName: "wand.and.rays").font(.system(size: 20))
-                    Text("dither").font(.headline)
-                }
-                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
-                .background(ditherButtonBackgroundColor)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .disabled(image == nil)
-
-            Button(action: {
-                self.frameColor = nil
-            }) {
-                HStack {
-                    Image(systemName: "square.slash").font(.system(size: 20))
-                }
-                .frame(minWidth: 0, maxWidth: 50, minHeight: 0, maxHeight: 50)
-                .background(frameButtonBackgroundColor)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .disabled(imageDithered == nil)
-
-            Button(action: {
-                self.frameColor = .white
-            }) {
-                HStack {
-                    Image(systemName: "square.fill").font(.system(size: 20))
-                }
-                .frame(minWidth: 0, maxWidth: 50, minHeight: 0, maxHeight: 50)
-                .background(frameButtonBackgroundColor)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .disabled(imageDithered == nil)
-            
-            Button(action: {
-                self.frameColor = .black
-            }) {
-                HStack {
-                    Image(systemName: "square").font(.system(size: 20))
-                }
-                .frame(minWidth: 0, maxWidth: 50, minHeight: 0, maxHeight: 50)
-                .background(frameButtonBackgroundColor)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .disabled(imageDithered == nil)
-            
-            Button(action: shareImage) {
-                HStack {
-                    Image(systemName: "square.and.arrow.up").font(.system(size: 20))
-                    Text("share").font(.headline)
-                }
-                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
-                .background(shareButtonBackgroundColor)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-            .disabled(imageDithered == nil)
-        }
-        .padding(.top)
-        .padding(.horizontal)
     }
     
     private var imageView: some View {
@@ -153,31 +106,6 @@ struct ImageView: View {
             
             return AnyView(emptyView)
         }
-    }
-    
-    private var cameraButtonBackgroundColor: Color {
-        isCameraAvailable ? .accentColor : .gray
-    }
- 
-    
-    private var ditherButtonBackgroundColor: Color {
-        image != nil ? .accentColor : .gray
-    }
-
-    private var frameButtonBackgroundColor: Color {
-        imageDithered != nil ? .accentColor : .gray
-    }
-
-    private var shareButtonBackgroundColor: Color {
-        imageDithered != nil ? .accentColor : .gray
-    }
-
-    private func presentCamera() {
-        isCameraPresented = true
-    }
-    
-    private func presentGallery() {
-        isGalleryPresented = true
     }
     
     private func getFramedImage() -> UIImage? {
