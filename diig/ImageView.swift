@@ -16,7 +16,7 @@ struct ImageView: View {
     
     @State private var image: UIImage? = nil
     @State private var imageDithered: UIImage? = nil
-    @State private var frameColor: UIColor? = nil
+    @State private var frameColor: UIColor? = .white
     
     var body: some View {
         NavigationView {
@@ -49,18 +49,17 @@ struct ImageView: View {
                         
                         HStack {
                             Button(action: {
-                                self.frameColor = .white
+                                if self.frameColor == nil || self.frameColor == .white {
+                                    self.frameColor = .black
+                                } else {
+                                    self.frameColor = .white
+                                }
                             }) {
-                                Image(systemName: "square.fill")
-                            }
-                            .disabled(imageDithered == nil)
-                            
-                            Divider()
-                            
-                            Button(action: {
-                                self.frameColor = .black
-                            }) {
-                                Image(systemName: "square")
+                                if self.frameColor == nil || self.frameColor == .white {
+                                    Image(systemName: "circle.righthalf.fill")
+                                } else {
+                                    Image(systemName: "circle.lefthalf.fill")
+                                }
                             }
                             .disabled(imageDithered == nil)
                             
@@ -69,7 +68,12 @@ struct ImageView: View {
                             Button(action: {
                                 self.frameColor = nil
                             }) {
-                                Image(systemName: "square.slash")
+                                if self.frameColor == nil || self.frameColor == .white {
+                                    Image(systemName: "slash.circle.fill")
+                                } else {
+                                    Image(systemName: "slash.circle")
+                                }
+                                
                             }
                             .frame(minWidth: 0, maxWidth: 48, minHeight: 0)
                             .disabled(imageDithered == nil)
