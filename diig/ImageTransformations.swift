@@ -8,6 +8,12 @@
 import Foundation
 import UIKit
 
+public enum ImageTransformationError: Error {
+    
+    case noImageData
+    case pixelNotMonochrome
+}
+
 final class ImageTransformations {
     
     static func convertToMonochrome(image: UIImage) -> UIImage {
@@ -33,68 +39,37 @@ final class ImageTransformations {
         return image
     }
     
-    static func getPixelLuminance(image: UIImage, pos: CGPoint) throws -> Float {
-        guard let cgImage = image.cgImage else {
-            throw ImageTransformationError.cgImage
-        }
+    static func convertToDithered(image: UIImage) -> UIImage {
+        // todo: dithering
         
-        guard let cgImageData = cgImage.dataProvider else {
-            throw ImageTransformationError.cgImageDataProvider
-        }
-        
-        guard let data = cgImageData.data else {
-            throw ImageTransformationError.cgImageData
-        }
-        
-        do {
-            return try getPixelLuminance(data: data, imageWidth: Int(image.size.width), pos: pos)
-        } catch {
-            throw error
-        }
+        return image
     }
     
-    static func getPixelLuminance(data: CFData, imageWidth: Int, pos: CGPoint) throws -> Float {
+    static func getData(image: UIImage) -> CFData? {
+        guard let cgImage = image.cgImage, let cgImageData = cgImage.dataProvider else {
+            return nil
+        }
+        
+        return cgImageData.data
+    }
+    
+    static func getPixelLuminance(image: UIImage, pos: CGPoint) throws -> Float {
+        guard let data = getData(image: image) else {
+            throw ImageTransformationError.noImageData
+        }
+        
         let pixelData: UnsafePointer<UInt8> = CFDataGetBytePtr(data)
-        let pixelInfo: Int = ((imageWidth * Int(pos.y)) + Int(pos.x)) * 4
+        let pixelInfo: Int = ((Int(image.size.width) * Int(pos.y)) + Int(pos.x)) * 4
         
         let r = CGFloat(pixelData[pixelInfo]) / CGFloat(255.0)
         let g = CGFloat(pixelData[pixelInfo + 1]) / CGFloat(255.0)
         let b = CGFloat(pixelData[pixelInfo + 2]) / CGFloat(255.0)
-        let a = CGFloat(pixelData[pixelInfo + 3]) / CGFloat(255.0)
-        
-        guard a == 1 else {
-            throw ImageTransformationError.pixelTransparent
-        }
+        // let a = CGFloat(pixelData[pixelInfo + 3]) / CGFloat(255.0)
         
         guard r == g && g == b else {
             throw ImageTransformationError.pixelNotMonochrome
         }
         
         return Float(r)
-    }
-}
-
-public enum ImageTransformationError: Error {
-    case cgImage
-    case cgImageDataProvider
-    case cgImageData
-    
-    case pixelTransparent
-    case pixelNotMonochrome
-}
-
-public extension UIImage {
-    var monochrome: UIImage {
-        ImageTransformations.convertToMonochrome(image: self)
-    }
-    
-    func pixelLuminance(x: Int, y: Int) -> Float {
-        do {
-            return try ImageTransformations.getPixelLuminance(image: self, pos: CGPoint(x: x, y: y))
-        } catch {
-            NSLog("Cannot obtain pixel luminosity: \(error.localizedDescription)")
-        }
-        
-        return -1.0
     }
 }
