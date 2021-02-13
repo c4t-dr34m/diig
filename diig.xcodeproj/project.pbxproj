@@ -7,18 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */; };
 		21EC580125D6EFC7002E248A /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21EC580025D6EFC7002E248A /* ImagePicker.swift */; };
 		21F00E6825D6E41600C2C281 /* DiigApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F00E6725D6E41600C2C281 /* DiigApp.swift */; };
-		21F00E6A25D6E41600C2C281 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F00E6925D6E41600C2C281 /* ContentView.swift */; };
+		21F00E6A25D6E41600C2C281 /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F00E6925D6E41600C2C281 /* ImageView.swift */; };
 		21F00E6C25D6E41600C2C281 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21F00E6B25D6E41600C2C281 /* Assets.xcassets */; };
 		21F00E6F25D6E41600C2C281 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 21F00E6E25D6E41600C2C281 /* Preview Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
 		21EC580025D6EFC7002E248A /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		21F00E6425D6E41600C2C281 /* diig.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = diig.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		21F00E6725D6E41600C2C281 /* DiigApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiigApp.swift; sourceTree = "<group>"; };
-		21F00E6925D6E41600C2C281 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		21F00E6925D6E41600C2C281 /* ImageView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageView.swift; sourceTree = "<group>"; };
 		21F00E6B25D6E41600C2C281 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		21F00E6E25D6E41600C2C281 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		21F00E7025D6E41600C2C281 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -35,6 +37,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		217E0C3B25D7CB89007920B8 /* Support Files */ = {
+			isa = PBXGroup;
+			children = (
+				21F00E6B25D6E41600C2C281 /* Assets.xcassets */,
+				21F00E7025D6E41600C2C281 /* Info.plist */,
+				21F00E6D25D6E41600C2C281 /* Preview Content */,
+			);
+			path = "Support Files";
+			sourceTree = "<group>";
+		};
 		21F00E5B25D6E41500C2C281 = {
 			isa = PBXGroup;
 			children = (
@@ -55,11 +67,10 @@
 			isa = PBXGroup;
 			children = (
 				21F00E6725D6E41600C2C281 /* DiigApp.swift */,
-				21F00E6925D6E41600C2C281 /* ContentView.swift */,
-				21F00E6B25D6E41600C2C281 /* Assets.xcassets */,
-				21F00E7025D6E41600C2C281 /* Info.plist */,
-				21F00E6D25D6E41600C2C281 /* Preview Content */,
 				21EC580025D6EFC7002E248A /* ImagePicker.swift */,
+				217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */,
+				21F00E6925D6E41600C2C281 /* ImageView.swift */,
+				217E0C3B25D7CB89007920B8 /* Support Files */,
 			);
 			path = diig;
 			sourceTree = "<group>";
@@ -141,8 +152,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */,
 				21EC580125D6EFC7002E248A /* ImagePicker.swift in Sources */,
-				21F00E6A25D6E41600C2C281 /* ContentView.swift in Sources */,
+				21F00E6A25D6E41600C2C281 /* ImageView.swift in Sources */,
 				21F00E6825D6E41600C2C281 /* DiigApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -272,10 +284,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"diig/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"diig/Support Files/Preview Content\"";
 				DEVELOPMENT_TEAM = 4W495F46Z6;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = diig/Info.plist;
+				INFOPLIST_FILE = "diig/Support Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -294,10 +306,10 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_ASSET_PATHS = "\"diig/Preview Content\"";
+				DEVELOPMENT_ASSET_PATHS = "\"diig/Support Files/Preview Content\"";
 				DEVELOPMENT_TEAM = 4W495F46Z6;
 				ENABLE_PREVIEWS = YES;
-				INFOPLIST_FILE = diig/Info.plist;
+				INFOPLIST_FILE = "diig/Support Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 14.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
