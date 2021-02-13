@@ -13,10 +13,13 @@ struct ImageView: View {
     
     @State private var isPickerPresented = false
     @State private var isDithering = false
+    @State private var isDitheringAvailable = true
     
     @State private var image: UIImage? = nil
     @State private var imageDithered: UIImage? = nil
     @State private var frameColor: UIColor? = .white
+    
+    @State private var timer: Timer? = nil
     
     var body: some View {
         NavigationView {
@@ -30,7 +33,13 @@ struct ImageView: View {
                 .navigationBarTitle(Text("diig"), displayMode: .inline)
                 .toolbar {
                     ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
-                        Button(action: { isPickerPresented = true }) {
+                        Button(action: {
+                            image = nil
+                            imageDithered = nil
+                            
+                            isDitheringAvailable = true
+                            isPickerPresented = true
+                        }) {
                             Image(systemName: "plus.circle")
                         }
                     }
@@ -43,7 +52,7 @@ struct ImageView: View {
                                 return Image(systemName: "wand.and.stars")
                             }
                         }
-                        .disabled(image == nil || isDithering)
+                        .disabled(image == nil || !isDitheringAvailable || isDithering)
                         
                         Spacer()
                         
@@ -165,10 +174,12 @@ struct ImageView: View {
         }
         
         isDithering = true
+        
         DispatchQueue.global(qos: .userInitiated).async {
             self.imageDithered = originalImage.dithered
             
             isDithering = false
+            isDitheringAvailable = false
         }
     }
     
@@ -187,5 +198,11 @@ struct ImageView: View {
             animated: true,
             completion: nil
         )
+    }
+    
+    private func log(_ message: String) -> EmptyView {
+        NSLog(message)
+        
+        return EmptyView()
     }
 }
