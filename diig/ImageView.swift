@@ -31,7 +31,7 @@ struct ImageView: View {
                 .toolbar {
                     ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
                         Button(action: { isPickerPresented = true }) {
-                            Image(systemName: "plus.app.fill")
+                            Image(systemName: "plus.circle")
                         }
                     }
                     
