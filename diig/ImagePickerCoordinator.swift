@@ -21,7 +21,7 @@ final class ImagePickerCoordinator: NSObject, UIImagePickerControllerDelegate, U
         didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
     ) {
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-            parent.selectedImage = image
+            parent.selectedImage = image.resize(toFitSquare: Int(Config.imageInset)).monochrome
         }
  
         parent.presentationMode.wrappedValue.dismiss()

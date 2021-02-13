@@ -18,8 +18,8 @@ private enum Direction {
 
 final class Riemersma {
     
-    private static let size = 32 // number of pixels remembered
-    private static let weightDiff = 8 // relative weight of youngest pixel in the queue, versus the oldest pixel
+    private static let size = 48 // number of pixels remembered while traversing the image
+    private static let weightDiff = 8 // basically contrast of the resulting image
     
     private let imageData: CFMutableData
     private let imageDataPointer: UnsafeMutablePointer<UInt8>

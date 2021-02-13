@@ -46,6 +46,39 @@ final class ImageTransformations {
         }
     }
     
+    static func frame(image: UIImage, color: UIColor) -> UIImage {
+        let square = Config.imageSize
+        let width = image.size.width
+        let height = image.size.height
+        
+        let size = CGSize(width: square, height: square)
+        let rect = CGRect(
+            x: (square - width) / 2,
+            y: (square - height) / 2,
+            width: width,
+            height: height
+        )
+
+        UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
+        
+        if let context = UIGraphicsGetCurrentContext() {
+            color.setFill()
+            context.fill(CGRect(x: 0, y: 0, width: square, height: square))
+        }
+        
+        image.draw(in: rect)
+        
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        if let newImage = newImage {
+            return newImage
+        } else {
+            NSLog("Failed to resize image.")
+            return image
+        }
+    }
+    
     static func convertToMonochrome(image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage else {
             NSLog("Failed to get image data for discoloration.")

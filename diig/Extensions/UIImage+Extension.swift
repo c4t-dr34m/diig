@@ -22,6 +22,10 @@ public extension UIImage {
         ImageTransformations.resize(image: self, toFitSquare: targetSize)
     }
     
+    func frame(with color: UIColor) -> UIImage {
+        ImageTransformations.frame(image: self, color: color)
+    }
+    
     func pixelLuminance(x: Int, y: Int) -> CGFloat {
         do {
             return try ImageTransformations.getLuminance(for: CGPoint(x: x, y: y), from: self)
