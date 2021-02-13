@@ -12,6 +12,7 @@ struct ImageView: View {
     @Environment(\.colorScheme) var colorScheme
     
     @State private var isPickerPresented = false
+    @State private var isDithering = false
     
     @State private var image: UIImage? = nil
     @State private var imageDithered: UIImage? = nil
@@ -19,92 +20,126 @@ struct ImageView: View {
     
     var body: some View {
         NavigationView {
-            VStack {
-                Spacer()
-                imageView
-                Spacer()
-            }
-            .navigationBarTitle(Text("diig"), displayMode: .inline)
-            .toolbar {
-                ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
-                    Button(action: { isPickerPresented = true }) {
-                        Image(systemName: "plus.app.fill")
+            ZStack {
+                VStack {
+                    Spacer()
+                    imageView
+                    Spacer()
+                }
+                .blur(radius: isDithering ? 10 : 0)
+                .navigationBarTitle(Text("diig"), displayMode: .inline)
+                .toolbar {
+                    ToolbarItem(placement: ToolbarItemPlacement.primaryAction) {
+                        Button(action: { isPickerPresented = true }) {
+                            Image(systemName: "plus.app.fill")
+                        }
                     }
+                    
+                    ToolbarItemGroup(placement: .bottomBar) {
+                        Button(action: ditherImage) { () -> Image in
+                            if isDithering {
+                                return Image(systemName: "hourglass")
+                            } else {
+                                return Image(systemName: "wand.and.stars")
+                            }
+                        }
+                        .disabled(image == nil || isDithering)
+                        
+                        Spacer()
+                        
+                        HStack {
+                            Button(action: {
+                                self.frameColor = .white
+                            }) {
+                                Image(systemName: "square.fill")
+                            }
+                            .disabled(imageDithered == nil)
+                            
+                            Divider()
+                            
+                            Button(action: {
+                                self.frameColor = .black
+                            }) {
+                                Image(systemName: "square")
+                            }
+                            .disabled(imageDithered == nil)
+                            
+                            Divider()
+                            
+                            Button(action: {
+                                self.frameColor = nil
+                            }) {
+                                Image(systemName: "square.slash")
+                            }
+                            .frame(minWidth: 0, maxWidth: 48, minHeight: 0)
+                            .disabled(imageDithered == nil)
+                        }
+                        
+                        Spacer()
+                        
+                        Button(action: shareImage) {
+                            Image(systemName: "square.and.arrow.up")
+                        }
+                        .disabled(imageDithered == nil)
+                    }
+                }
+                .sheet(isPresented: $isPickerPresented) {
+                    return ImagePicker(image: $image, isPresented: $isPickerPresented, sourceType: .photoLibrary)
                 }
                 
-                ToolbarItemGroup(placement: .bottomBar) {
-                    Button(action: ditherImage) {
-                        Image(systemName: "wand.and.rays")
-                    }
-                    .disabled(image == nil)
-                    
-                    Spacer()
-                    
-                    HStack {
-                        Button(action: {
-                            self.frameColor = nil
-                        }) {
-                            Image(systemName: "square.slash")
-                        }
-                        .frame(minWidth: 0, maxWidth: 48, minHeight: 0)
-                        .disabled(imageDithered == nil)
-                        
-                        Divider()
-                        
-                        Button(action: {
-                            self.frameColor = .white
-                        }) {
-                            Image(systemName: "square.fill")
-                        }
-                        .disabled(imageDithered == nil)
-                        
-                        Divider()
-                        
-                        Button(action: {
-                            self.frameColor = .black
-                        }) {
-                            Image(systemName: "square")
-                        }
-                        .disabled(imageDithered == nil)
-                    }
-                    
-                    Spacer()
-                    
-                    Button(action: shareImage) {
-                        Image(systemName: "square.and.arrow.up")
-                    }
-                    .disabled(imageDithered == nil)
-                }
+                progressView
             }
-            .sheet(isPresented: $isPickerPresented) {
-                ImagePicker(image: $image, isPresented: $isPickerPresented, sourceType: .photoLibrary)
+        }
+    }
+    
+    private var progressView: some View {
+        if isDithering {
+            let background: Color
+            if colorScheme == .dark {
+                background = Color.black.opacity(0.3)
+            } else {
+                background = Color.white.opacity(0.3)
             }
+            
+            let view = ZStack {
+                ProgressView()
+                    .scaleEffect(3, anchor: .center)
+            }
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+            .edgesIgnoringSafeArea(.all)
+            .background(background)
+            
+            return AnyView(view)
+        } else {
+            let view = EmptyView()
+            
+            return AnyView(view)
         }
     }
     
     private var imageView: some View {
         if let image = getFramedImage() {
-            let imageView = Image(uiImage: image)
+            let view = Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
                 .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
             
-            return AnyView(imageView)
+            return AnyView(view)
         } else if let image = self.image {
-            let imageView = Image(uiImage: image)
+            let view = Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
                 .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
             
-            return AnyView(imageView)
+            return AnyView(view)
         } else {
-            let emptyView = EmptyView()
+            let view = EmptyView()
                 .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
             
-            return AnyView(emptyView)
+            return AnyView(view)
         }
     }
     
@@ -125,7 +160,12 @@ struct ImageView: View {
             return
         }
         
-        self.imageDithered = originalImage.dithered
+        isDithering = true
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.imageDithered = originalImage.dithered
+            
+            isDithering = false
+        }
     }
     
     private func shareImage() {

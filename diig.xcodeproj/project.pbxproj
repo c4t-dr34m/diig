@@ -82,6 +82,7 @@
 		21F00E6625D6E41600C2C281 /* diig */ = {
 			isa = PBXGroup;
 			children = (
+				21C4751225D848C900B713E6 /* Config.swift */,
 				21F00E6725D6E41600C2C281 /* DiigApp.swift */,
 				21EC580025D6EFC7002E248A /* ImagePicker.swift */,
 				217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */,
@@ -90,7 +91,6 @@
 				21C4750425D80A2E00B713E6 /* Riemersma.swift */,
 				21C474FB25D7EBCD00B713E6 /* Extensions */,
 				217E0C3B25D7CB89007920B8 /* Support Files */,
-				21C4751225D848C900B713E6 /* Config.swift */,
 			);
 			path = diig;
 			sourceTree = "<group>";
