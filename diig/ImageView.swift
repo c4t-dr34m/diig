@@ -19,33 +19,10 @@ struct ImageView: View {
     @State private var imageDithered: UIImage? = nil
     @State private var frameColor: UIColor = .black
     
-    private var cameraButtonBackgroundColor: Color {
-        isCameraAvailable ? .accentColor : .gray
-    }
-    
-    private var imageView: some View {
-        if let image = self.image {
-            let framedImage = image.frame(with: self.frameColor)
-            let imageView = Image(uiImage: framedImage)
-                .resizable()
-                .scaledToFit()
-                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
-                .edgesIgnoringSafeArea(.all)
-            
-            return AnyView(imageView)
-        } else {
-            let emptyView = EmptyView()
-                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
-                .edgesIgnoringSafeArea(.all)
-            
-            return AnyView(emptyView)
-        }
-    }
-    
     var body: some View {
         VStack {
             HStack {
-                Button(action: {self.isCameraPresented = true}) {
+                Button(action: presentCamera) {
                     HStack {
                         Image(systemName: "camera").font(.system(size: 20))
                         Text("camera").font(.headline)
@@ -60,7 +37,7 @@ struct ImageView: View {
                     ImagePicker(selectedImage: self.$image, sourceType: .camera)
                 }
                 
-                Button(action: {self.isGalleryPresented = true}) {
+                Button(action: presentGallery) {
                     HStack {
                         Image(systemName: "photo").font(.system(size: 20))
                         Text("photo library").font(.headline)
@@ -85,25 +62,17 @@ struct ImageView: View {
         Spacer()
         
         HStack {
-            Button(action: {
-                guard let originalImage = self.image else {
-                    return
-                }
-                
-                let dithered = originalImage.dithered
-                
-                self.image = dithered
-                self.imageDithered = dithered
-            }) {
+            Button(action: ditherImage) {
                 HStack {
                     Image(systemName: "wand.and.rays").font(.system(size: 20))
                     Text("dither").font(.headline)
                 }
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
-                .background(Color.blue)
+                .background(ditherButtonBackgroundColor)
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
+            .disabled(image == nil)
             
             Button(action: {
                 self.frameColor = .black
@@ -112,10 +81,11 @@ struct ImageView: View {
                     Image(systemName: "square.fill").font(.system(size: 20))
                 }
                 .frame(minWidth: 0, maxWidth: 50, minHeight: 0, maxHeight: 50)
-                .background(Color.blue)
+                .background(frameButtonBackgroundColor)
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
+            .disabled(imageDithered == nil)
             
             Button(action: {
                 self.frameColor = .white
@@ -124,45 +94,102 @@ struct ImageView: View {
                     Image(systemName: "square").font(.system(size: 20))
                 }
                 .frame(minWidth: 0, maxWidth: 50, minHeight: 0, maxHeight: 50)
-                .background(Color.blue)
+                .background(frameButtonBackgroundColor)
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
+            .disabled(imageDithered == nil)
             
-            Button(action: {
-                guard let image = self.image else {
-                    return
-                }
-                
-                let viewController = UIActivityViewController(
-                    activityItems: [image.frame(with: self.frameColor)],
-                    applicationActivities: nil
-                )
-                UIApplication.shared.windows.first?.rootViewController?.present(
-                    viewController,
-                    animated: true,
-                    completion: nil
-                )
-            }) {
+            Button(action: shareImage) {
                 HStack {
                     Image(systemName: "square.and.arrow.up").font(.system(size: 20))
                     Text("share").font(.headline)
                 }
                 .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: 50)
-                .background(Color.blue)
+                .background(shareButtonBackgroundColor)
                 .foregroundColor(.white)
                 .cornerRadius(8)
             }
+            .disabled(imageDithered == nil)
         }
         .padding(.top)
         .padding(.horizontal)
     }
-}
+    
+    private var imageView: some View {
+        if let imageDithered = self.imageDithered {
+            let framedImage = imageDithered.frame(with: self.frameColor)
+            let imageView = Image(uiImage: framedImage)
+                .resizable()
+                .scaledToFit()
+                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
+            
+            return AnyView(imageView)
+        } else if let image = self.image {
+            let imageView = Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
+            
+            return AnyView(imageView)
+        } else {
+            let emptyView = EmptyView()
+                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+                .edgesIgnoringSafeArea(.all)
+            
+            return AnyView(emptyView)
+        }
+    }
+    
+    private var cameraButtonBackgroundColor: Color {
+        isCameraAvailable ? .accentColor : .gray
+    }
+ 
+    
+    private var ditherButtonBackgroundColor: Color {
+        image != nil ? .accentColor : .gray
+    }
 
-private extension View {
-    func log(_ message: String) -> some View {
-        NSLog(message)
+    private var frameButtonBackgroundColor: Color {
+        imageDithered != nil ? .accentColor : .gray
+    }
+
+    private var shareButtonBackgroundColor: Color {
+        imageDithered != nil ? .accentColor : .gray
+    }
+
+    private func presentCamera() {
+        isCameraPresented = true
+    }
+    
+    private func presentGallery() {
+        isGalleryPresented = true
+    }
+    
+    private func ditherImage() {
+        guard let originalImage = self.image else {
+            return
+        }
         
-        return EmptyView()
+        self.imageDithered = originalImage.dithered
+    }
+    
+    private func shareImage() {
+        guard let imageDithered = self.imageDithered else {
+            return
+        }
+        
+        let viewController = UIActivityViewController(
+            activityItems: [imageDithered.frame(with: self.frameColor)],
+            applicationActivities: nil
+        )
+        
+        UIApplication.shared.windows.first?.rootViewController?.present(
+            viewController,
+            animated: true,
+            completion: nil
+        )
     }
 }
