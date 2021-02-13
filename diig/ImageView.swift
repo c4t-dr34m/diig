@@ -21,10 +21,8 @@ struct ImageView: View {
     }
     
     var body: some View {
-        log("Pixel luminance: \(image.monochrome.pixelLuminance(x: Int(image.size.width / 2), y: Int(image.size.height / 2)))")
-        
         VStack {
-            Image(uiImage: self.image.monochrome)
+            Image(uiImage: self.image.resize(toFitSquare: 1078).monochrome.dithered)
                 .resizable()
                 .scaledToFit()
                 .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)

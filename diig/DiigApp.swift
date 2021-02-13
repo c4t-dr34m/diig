@@ -9,6 +9,7 @@ import SwiftUI
 
 @main
 struct DiigApp: App {
+    
     var body: some Scene {
         WindowGroup {
             ImageView()

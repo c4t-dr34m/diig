@@ -10,6 +10,7 @@
 		217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */; };
 		21C474EE25D7D70300B713E6 /* ImageTransformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474ED25D7D70300B713E6 /* ImageTransformations.swift */; };
 		21C474FD25D7EBE600B713E6 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */; };
+		21C4750525D80A2E00B713E6 /* Riemersma.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C4750425D80A2E00B713E6 /* Riemersma.swift */; };
 		21EC580125D6EFC7002E248A /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21EC580025D6EFC7002E248A /* ImagePicker.swift */; };
 		21F00E6825D6E41600C2C281 /* DiigApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F00E6725D6E41600C2C281 /* DiigApp.swift */; };
 		21F00E6A25D6E41600C2C281 /* ImageView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21F00E6925D6E41600C2C281 /* ImageView.swift */; };
@@ -21,6 +22,7 @@
 		217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
 		21C474ED25D7D70300B713E6 /* ImageTransformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformations.swift; sourceTree = "<group>"; };
 		21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
+		21C4750425D80A2E00B713E6 /* Riemersma.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Riemersma.swift; sourceTree = "<group>"; };
 		21EC580025D6EFC7002E248A /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		21F00E6425D6E41600C2C281 /* diig.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = diig.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		21F00E6725D6E41600C2C281 /* DiigApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiigApp.swift; sourceTree = "<group>"; };
@@ -83,6 +85,7 @@
 				217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */,
 				21C474ED25D7D70300B713E6 /* ImageTransformations.swift */,
 				21F00E6925D6E41600C2C281 /* ImageView.swift */,
+				21C4750425D80A2E00B713E6 /* Riemersma.swift */,
 				21C474FB25D7EBCD00B713E6 /* Extensions */,
 				217E0C3B25D7CB89007920B8 /* Support Files */,
 			);
@@ -171,6 +174,7 @@
 				21F00E6A25D6E41600C2C281 /* ImageView.swift in Sources */,
 				21C474FD25D7EBE600B713E6 /* UIImage+Extension.swift in Sources */,
 				21F00E6825D6E41600C2C281 /* DiigApp.swift in Sources */,
+				21C4750525D80A2E00B713E6 /* Riemersma.swift in Sources */,
 				21C474EE25D7D70300B713E6 /* ImageTransformations.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -14,9 +14,17 @@ public extension UIImage {
         ImageTransformations.convertToMonochrome(image: self)
     }
     
-    func pixelLuminance(x: Int, y: Int) -> Float {
+    var dithered: UIImage {
+        ImageTransformations.dither(image: self)
+    }
+    
+    func resize(toFitSquare targetSize: Int) -> UIImage {
+        ImageTransformations.resize(image: self, toFitSquare: targetSize)
+    }
+    
+    func pixelLuminance(x: Int, y: Int) -> CGFloat {
         do {
-            return try ImageTransformations.getPixelLuminance(image: self, pos: CGPoint(x: x, y: y))
+            return try ImageTransformations.getLuminance(for: CGPoint(x: x, y: y), from: self)
         } catch {
             NSLog("Cannot obtain pixel luminosity: \(error.localizedDescription)")
         }
