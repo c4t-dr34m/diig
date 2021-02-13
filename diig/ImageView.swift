@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ImageView: View {
     
+    @Environment(\.colorScheme) var colorScheme
+    
     @State private var isCameraAvailable = UIImagePickerController.isSourceTypeAvailable(.camera)
     @State private var isGalleryPresented = false
     @State private var isCameraPresented = false
@@ -19,8 +21,10 @@ struct ImageView: View {
     }
     
     var body: some View {
+        log("Pixel luminance: \(image.monochrome.pixelLuminance(x: Int(image.size.width / 2), y: Int(image.size.height / 2)))")
+        
         VStack {
-            Image(uiImage: self.image)
+            Image(uiImage: self.image.monochrome)
                 .resizable()
                 .scaledToFit()
                 .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
@@ -58,5 +62,13 @@ struct ImageView: View {
             }
             .padding(.horizontal)
         }
+    }
+}
+
+private extension View {
+    func log(_ message: String) -> some View {
+        NSLog(message)
+        
+        return EmptyView()
     }
 }

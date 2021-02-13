@@ -29,7 +29,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         _ uiViewController: UIImagePickerController,
         context: UIViewControllerRepresentableContext<ImagePicker>
     ) {
-        // TODO: ???
+        // noop
     }
 
     func makeCoordinator() -> ImagePickerCoordinator {
