@@ -17,7 +17,7 @@ struct ImageView: View {
     
     @State private var image: UIImage? = nil
     @State private var imageDithered: UIImage? = nil
-    @State private var frameColor: UIColor = .black
+    @State private var frameColor: UIColor? = nil
     
     var body: some View {
         VStack {
@@ -73,9 +73,22 @@ struct ImageView: View {
                 .cornerRadius(8)
             }
             .disabled(image == nil)
-            
+
             Button(action: {
-                self.frameColor = .black
+                self.frameColor = nil
+            }) {
+                HStack {
+                    Image(systemName: "square.slash").font(.system(size: 20))
+                }
+                .frame(minWidth: 0, maxWidth: 50, minHeight: 0, maxHeight: 50)
+                .background(frameButtonBackgroundColor)
+                .foregroundColor(.white)
+                .cornerRadius(8)
+            }
+            .disabled(imageDithered == nil)
+
+            Button(action: {
+                self.frameColor = .white
             }) {
                 HStack {
                     Image(systemName: "square.fill").font(.system(size: 20))
@@ -88,7 +101,7 @@ struct ImageView: View {
             .disabled(imageDithered == nil)
             
             Button(action: {
-                self.frameColor = .white
+                self.frameColor = .black
             }) {
                 HStack {
                     Image(systemName: "square").font(.system(size: 20))
@@ -117,9 +130,8 @@ struct ImageView: View {
     }
     
     private var imageView: some View {
-        if let imageDithered = self.imageDithered {
-            let framedImage = imageDithered.frame(with: self.frameColor)
-            let imageView = Image(uiImage: framedImage)
+        if let image = getFramedImage() {
+            let imageView = Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
                 .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
@@ -168,6 +180,18 @@ struct ImageView: View {
         isGalleryPresented = true
     }
     
+    private func getFramedImage() -> UIImage? {
+        guard let imageDithered = self.imageDithered else {
+            return nil
+        }
+        
+        if let frameColor = self.frameColor {
+            return imageDithered.frame(with: frameColor)
+        } else {
+            return imageDithered
+        }
+    }
+    
     private func ditherImage() {
         guard let originalImage = self.image else {
             return
@@ -177,12 +201,12 @@ struct ImageView: View {
     }
     
     private func shareImage() {
-        guard let imageDithered = self.imageDithered else {
+        guard let image = getFramedImage() else {
             return
         }
         
         let viewController = UIActivityViewController(
-            activityItems: [imageDithered.frame(with: self.frameColor)],
+            activityItems: [image],
             applicationActivities: nil
         )
         
