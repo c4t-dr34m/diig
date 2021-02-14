@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftUI
 import UIKit
 
 public extension UIImage {
@@ -14,8 +15,8 @@ public extension UIImage {
         ImageTransformations.planar8(from: self)
     }
     
-    var dithered: UIImage {
-        ImageTransformations.ditherPlanar8(image: self)
+    func dither(progress: Binding<Float>) -> UIImage {
+        ImageTransformations.ditherPlanar8(image: self, progress: progress)
     }
     
     func scale(toFitSquare targetSize: Int) -> UIImage {

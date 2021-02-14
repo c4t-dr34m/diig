@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 import Accelerate
 
 public enum ImageTransformationError: Error {
@@ -163,7 +164,7 @@ final class ImageTransformations {
         return UIImage(cgImage: newCgImage)
     }
     
-    static func ditherPlanar8(image: UIImage) -> UIImage {
+    static func ditherPlanar8(image: UIImage, progress: Binding<Float>) -> UIImage {
         guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
             fatalError("Unable to get CGImage. Maybe it's not Planar8.")
         }
@@ -173,7 +174,7 @@ final class ImageTransformations {
             return image
         }
         
-        let riemersma = Riemersma(with: data, size: image.size)
+        let riemersma = Riemersma(with: data, size: image.size, progress: progress)
         let ditheredData = riemersma.getDitheredImage()
         
         if let ditheredImage = ImageTransformations.image(from: ditheredData, size: image.size) {

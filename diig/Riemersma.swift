@@ -9,6 +9,7 @@
 
 import Foundation
 import UIKit
+import SwiftUI
 
 private enum Direction {
     case none
@@ -20,6 +21,8 @@ private enum Direction {
 
 final class Riemersma {
     
+    @Binding var ditheringProgress: Float
+    
     private static let size = 96 // number of pixels remembered while traversing the image
     private static let weightDiff = 64 // basically contrast of the resulting image
     
@@ -28,7 +31,9 @@ final class Riemersma {
     private let imageSize: CGSize
     
     private var dithered = false
-    
+    private var ditheredPixels = 0
+    private var lastProgressPosted: Float = 0.0
+
     private var currentPosition: CGPoint = CGPoint(x: 0.0, y: 0.0)
     
     private var weights = Array<CGFloat>(repeating: 0.0, count: size)
@@ -37,10 +42,16 @@ final class Riemersma {
     /*
      works with true monochrome images; planar8.
      */
-    public init(with data: CFMutableData, size: CGSize) {
+    public init(
+        with data: CFMutableData,
+        size: CGSize,
+        progress: Binding<Float>
+    ) {
         self.imageData = data
         self.imageSize = size
         self.imageDataPointer = CFDataGetMutableBytePtr(imageData)
+
+        self._ditheringProgress = progress
     }
     
     public func getDitheredImage() -> CFMutableData {
@@ -106,6 +117,9 @@ final class Riemersma {
         if errors.count != Riemersma.size {
             NSLog("Errors array doesn't contain correct number of items: \(errors.count)")
         }
+        
+        ditheredPixels += 1
+        updateProgress()
         
         return newLuminance
     }
@@ -193,5 +207,17 @@ final class Riemersma {
                 break
             }
         }
+    }
+    
+    private func updateProgress() {
+        let totalPixels = imageSize.width * imageSize.height
+        let currentProgress = Float(ditheredPixels) / Float(totalPixels)
+        
+        guard currentProgress > lastProgressPosted + 0.01 else {
+            return // do not update for every pixel.
+        }
+        lastProgressPosted = currentProgress
+
+        ditheringProgress = max(0, min(currentProgress, 1.0))
     }
 }

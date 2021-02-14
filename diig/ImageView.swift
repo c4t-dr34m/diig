@@ -14,12 +14,12 @@ struct ImageView: View {
     @State private var isPickerPresented = false
     @State private var isDithering = false
     @State private var isDitheringAvailable = true
-    
+
+    @State private var ditheringProgress: Float = 0.0
+
     @State private var image: UIImage? = nil
     @State private var imageDithered: UIImage? = nil
     @State private var frameColor: UIColor? = .white
-    
-    @State private var timer: Timer? = nil
     
     var body: some View {
         NavigationView {
@@ -52,6 +52,7 @@ struct ImageView: View {
                                 return Image(systemName: "wand.and.stars")
                             }
                         }
+                        .frame(minWidth: 64, minHeight: 64)
                         .disabled(image == nil || !isDitheringAvailable || isDithering)
                         
                         Spacer()
@@ -70,9 +71,11 @@ struct ImageView: View {
                                     Image(systemName: "circle.lefthalf.fill")
                                 }
                             }
+                            .frame(minWidth: 64, minHeight: 64)
                             .disabled(imageDithered == nil)
                             
                             Divider()
+                                .frame(maxHeight: 32)
                             
                             Button(action: {
                                 self.frameColor = nil
@@ -84,7 +87,7 @@ struct ImageView: View {
                                 }
                                 
                             }
-                            .frame(minWidth: 0, maxWidth: 48, minHeight: 0)
+                            .frame(minWidth: 64, minHeight: 64)
                             .disabled(imageDithered == nil)
                         }
                         
@@ -93,9 +96,11 @@ struct ImageView: View {
                         Button(action: shareImagePng) {
                             Image(systemName: "square.and.arrow.up")
                         }
+                        .frame(minWidth: 64, minHeight: 64)
                         .disabled(imageDithered == nil)
                     }
                 }
+                .frame(minHeight: 72)
                 .sheet(isPresented: $isPickerPresented) {
                     return ImagePicker(image: $image, isPresented: $isPickerPresented, sourceType: .photoLibrary)
                 }
@@ -115,8 +120,9 @@ struct ImageView: View {
             }
             
             let view = ZStack {
-                ProgressView()
-                    .scaleEffect(3, anchor: .center)
+                ProgressView("dithering…", value: ditheringProgress, total: Float(1.0))
+                    .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+                    .padding(.horizontal, 50)
             }
             .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
             .edgesIgnoringSafeArea(.all)
@@ -169,6 +175,8 @@ struct ImageView: View {
     }
     
     private func ditherImage() {
+        ditheringProgress = 0.0
+        
         guard let originalImage = self.image else {
             return
         }
@@ -176,7 +184,7 @@ struct ImageView: View {
         isDithering = true
         
         DispatchQueue.global(qos: .userInitiated).async {
-            self.imageDithered = originalImage.dithered
+            self.imageDithered = originalImage.dither(progress: $ditheringProgress)
             
             isDithering = false
             isDitheringAvailable = false
