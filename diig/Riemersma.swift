@@ -21,10 +21,11 @@ private enum Direction {
 
 final class Riemersma {
     
+    private static let samplingStep: Int = 2 // count `samplingStep^2` pixel as one
+    private static let size: Int = 96 * samplingStep // number of pixels remembered while traversing the image
+    private static let weightDiff: Int = 32 * samplingStep // basically contrast of the resulting image
+
     @Binding var ditheringProgress: Float
-    
-    private static let size = 96 // number of pixels remembered while traversing the image
-    private static let weightDiff = 64 // basically contrast of the resulting image
     
     private let imageData: CFMutableData
     private let imageDataPointer: UnsafeMutablePointer<UInt8>
@@ -61,7 +62,8 @@ final class Riemersma {
         
         initWeights()
         
-        let size = max(imageSize.width, imageSize.height)
+        let step = CGFloat(Riemersma.samplingStep)
+        let size = max(imageSize.width / step, imageSize.height / step)
         var level = Int(log2(size))
 
         if ((1 << level) < Int(size)) {
@@ -89,15 +91,49 @@ final class Riemersma {
     }
     
     private func getLuminance(for pixel: CGPoint) -> CGFloat {
-        let pixelInfo: Int = ((Int(imageSize.width) * Int(pixel.y)) + Int(pixel.x))
+        var totalLuminosity: CGFloat = 0.0
+        var pixelsCounted: CGFloat = 0.0
         
-        return CGFloat(imageDataPointer[pixelInfo]) / CGFloat(255)
+        for x in 0..<Riemersma.samplingStep {
+            for y in 0..<Riemersma.samplingStep {
+                let pxX = pixel.x + CGFloat(x)
+                let pxY = pixel.y + CGFloat(y)
+                
+                if pxX > imageSize.width || pxY > imageSize.height {
+                    continue
+                }
+                
+                let pixelInfo = (Int(imageSize.width) * (Int(pixel.y) + y) + (Int(pixel.x) + x))
+                
+                totalLuminosity += CGFloat(imageDataPointer[pixelInfo]) / CGFloat(255)
+                pixelsCounted += 1.0
+            }
+        }
+        
+        return totalLuminosity / pixelsCounted
     }
     
     private func saveLuminance(_ luminance: CGFloat, for pixel: CGPoint) {
-        let pixelInfo: Int = ((Int(imageSize.width) * Int(pixel.y)) + Int(pixel.x))
-
-        imageDataPointer[pixelInfo] = UInt8(luminance * CGFloat(255))
+        var pixelsCounted = 0
+        
+        for x in 0..<Riemersma.samplingStep {
+            for y in 0..<Riemersma.samplingStep {
+                let pxX = pixel.x + CGFloat(x)
+                let pxY = pixel.y + CGFloat(y)
+                
+                if pxX > imageSize.width || pxY > imageSize.height {
+                    continue
+                }
+                
+                let pixelInfo = (Int(imageSize.width) * (Int(pixel.y) + y) + (Int(pixel.x) + x))
+                imageDataPointer[pixelInfo] = UInt8(luminance * CGFloat(255))
+                
+                pixelsCounted += 1
+            }
+        }
+        
+        ditheredPixels += pixelsCounted
+        updateProgress()
     }
     
     private func dither(_ luminance: CGFloat) -> CGFloat {
@@ -118,9 +154,6 @@ final class Riemersma {
             NSLog("Errors array doesn't contain correct number of items: \(errors.count)")
         }
         
-        ditheredPixels += 1
-        updateProgress()
-        
         return newLuminance
     }
     
@@ -133,15 +166,17 @@ final class Riemersma {
             saveLuminance(luminance, for: currentPosition)
         }
         
+        let step = CGFloat(Riemersma.samplingStep)
+        
         switch (direction) {
         case .left:
-            currentPosition.x -= 1
+            currentPosition.x -= step
         case .right:
-            currentPosition.x += 1
+            currentPosition.x += step
         case .up:
-            currentPosition.y -= 1
+            currentPosition.y -= step
         case .down:
-            currentPosition.y += 1
+            currentPosition.y += step
         case .none:
             break
         }
