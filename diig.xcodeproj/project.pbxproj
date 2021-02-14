@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */; };
+		21BD375D25D97FA700F21749 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 21BD375C25D97FA700F21749 /* Settings.bundle */; };
 		21C474EE25D7D70300B713E6 /* ImageTransformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474ED25D7D70300B713E6 /* ImageTransformations.swift */; };
 		21C474FD25D7EBE600B713E6 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */; };
 		21C4750525D80A2E00B713E6 /* Riemersma.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C4750425D80A2E00B713E6 /* Riemersma.swift */; };
@@ -21,6 +22,7 @@
 
 /* Begin PBXFileReference section */
 		217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
+		21BD375C25D97FA700F21749 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		21C474ED25D7D70300B713E6 /* ImageTransformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageTransformations.swift; sourceTree = "<group>"; };
 		21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
 		21C4750425D80A2E00B713E6 /* Riemersma.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Riemersma.swift; sourceTree = "<group>"; };
@@ -51,6 +53,7 @@
 				21F00E6B25D6E41600C2C281 /* Assets.xcassets */,
 				21F00E7025D6E41600C2C281 /* Info.plist */,
 				21F00E6D25D6E41600C2C281 /* Preview Content */,
+				21BD375C25D97FA700F21749 /* Settings.bundle */,
 			);
 			path = "Support Files";
 			sourceTree = "<group>";
@@ -161,6 +164,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				21F00E6F25D6E41600C2C281 /* Preview Assets.xcassets in Resources */,
+				21BD375D25D97FA700F21749 /* Settings.bundle in Resources */,
 				21F00E6C25D6E41600C2C281 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

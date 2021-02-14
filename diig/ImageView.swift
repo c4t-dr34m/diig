@@ -42,12 +42,22 @@ struct ImageView: View {
                         }) {
                             Image(systemName: "plus.circle")
                         }
+                        .disabled(isDithering)
                     }
                     
                     ToolbarItemGroup(placement: .bottomBar) {
                         Button(action: ditherImage) { () -> Image in
                             if isDithering {
-                                return Image(systemName: "hourglass")
+                                let icon: String
+                                if ditheringProgress <= 0.333 {
+                                    icon = "hourglass.bottomhalf.fill"
+                                } else if ditheringProgress <= 0.666 {
+                                    icon = "hourglass"
+                                } else {
+                                    icon = "hourglass.tophalf.fill"
+                                }
+                                
+                                return Image(systemName: icon)
                             } else {
                                 return Image(systemName: "wand.and.stars")
                             }
@@ -66,9 +76,9 @@ struct ImageView: View {
                                 }
                             }) {
                                 if self.frameColor == nil || self.frameColor == .white {
-                                    Image(systemName: "circle.righthalf.fill")
+                                    Image(systemName: "square.righthalf.fill")
                                 } else {
-                                    Image(systemName: "circle.lefthalf.fill")
+                                    Image(systemName: "square.lefthalf.fill")
                                 }
                             }
                             .frame(minWidth: 64, minHeight: 64)
@@ -81,9 +91,9 @@ struct ImageView: View {
                                 self.frameColor = nil
                             }) {
                                 if self.frameColor == nil || self.frameColor == .white {
-                                    Image(systemName: "slash.circle.fill")
+                                    Image(systemName: "square.slash.fill")
                                 } else {
-                                    Image(systemName: "slash.circle")
+                                    Image(systemName: "square.slash")
                                 }
                                 
                             }
