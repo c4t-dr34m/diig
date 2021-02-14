@@ -15,7 +15,7 @@ public extension UIImage {
     }
     
     var dithered: UIImage {
-        ImageTransformations.dither(image: self)
+        ImageTransformations.ditherPlanar8(image: self)
     }
     
     func scale(toFitSquare targetSize: Int) -> UIImage {

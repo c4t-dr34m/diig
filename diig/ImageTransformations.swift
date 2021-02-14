@@ -15,46 +15,7 @@ public enum ImageTransformationError: Error {
 }
 
 final class ImageTransformations {
-    
-    static func framePlanar8(image: UIImage, color: UIColor) -> UIImage {
-        guard let cgImage = image.cgImage else {
-            fatalError("Unable to get CGImage.")
-        }
-        
-        let square = Int(Config.imageSize)
-        let width = Int(image.size.width)
-        let height = Int(image.size.height)
-        
-        let rect = CGRect(
-            x: Int(Double(square - width) / 2.0),
-            y: Int(Double(square - height) / 2.0),
-            width: width,
-            height: height
-        )
-        
-        guard let cgContext = CGContext(
-            data: nil,
-            width: square,
-            height: square,
-            bitsPerComponent: cgImage.bitsPerComponent,
-            bytesPerRow: square,
-            space: cgImage.colorSpace ?? CGColorSpaceCreateDeviceGray(),
-            bitmapInfo: cgImage.alphaInfo.rawValue
-        ) else {
-            fatalError("Unable to create CGContext.")
-        }
-        
-        cgContext.setFillColor(color.cgColor)
-        cgContext.fill(CGRect(x: 0, y: 0, width: cgContext.width, height: cgContext.height))
-        cgContext.draw(cgImage, in: rect)
 
-        guard let newCgImage = cgContext.makeImage() else {
-            fatalError("Unable to create CGImage from CGContext.")
-        }
-
-        return UIImage(cgImage: newCgImage)
-    }
-    
     static func planar8(from image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage else {
             fatalError("Unable to get CGImage.")
@@ -112,8 +73,8 @@ final class ImageTransformations {
     }
     
     static func scalePlanar8(image: UIImage, to targetSize: Int) -> UIImage {
-        guard let cgImage = image.cgImage else {
-            fatalError("Unable to get CGImage.")
+        guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
+            fatalError("Unable to get CGImage. Maybe it's not Planar8.")
         }
         
         let ratioHorizontal  = CGFloat(targetSize) / image.size.width
@@ -163,12 +124,50 @@ final class ImageTransformations {
         return UIImage(cgImage: result)
     }
     
-    static func dither(image: UIImage) -> UIImage {
+    static func framePlanar8(image: UIImage, color: UIColor) -> UIImage {
         guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
-            NSLog("Can't dither. The image is not Planar8.")
-            return image
+            fatalError("Unable to get CGImage. Maybe it's not Planar8.")
         }
         
+        let square = Int(Config.imageSize)
+        let width = Int(image.size.width)
+        let height = Int(image.size.height)
+        
+        let rect = CGRect(
+            x: Int(Double(square - width) / 2.0),
+            y: Int(Double(square - height) / 2.0),
+            width: width,
+            height: height
+        )
+        
+        guard let cgContext = CGContext(
+            data: nil,
+            width: square,
+            height: square,
+            bitsPerComponent: cgImage.bitsPerComponent,
+            bytesPerRow: square,
+            space: cgImage.colorSpace ?? CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: cgImage.alphaInfo.rawValue
+        ) else {
+            fatalError("Unable to create CGContext.")
+        }
+        
+        cgContext.setFillColor(color.cgColor)
+        cgContext.fill(CGRect(x: 0, y: 0, width: cgContext.width, height: cgContext.height))
+        cgContext.draw(cgImage, in: rect)
+
+        guard let newCgImage = cgContext.makeImage() else {
+            fatalError("Unable to create CGImage from CGContext.")
+        }
+
+        return UIImage(cgImage: newCgImage)
+    }
+    
+    static func ditherPlanar8(image: UIImage) -> UIImage {
+        guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
+            fatalError("Unable to get CGImage. Maybe it's not Planar8.")
+        }
+
         guard let data = ImageTransformations.data(from: image) else {
             NSLog("Failed to get image data for dithering.")
             return image
