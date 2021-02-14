@@ -53,7 +53,11 @@ final class Riemersma {
 
         self._ditheringProgress = progress
         
-        self.samplingStep = UserDefaults.standard.integer(forKey: "sampling_step")
+        var step = UserDefaults.standard.integer(forKey: "sampling_step")
+        if step < 1 || step > 8 {
+            step = Config.defaultSamplingStep
+        }
+        self.samplingStep = step
         
         self.cacheSize = 96 * samplingStep
         self.weightDiff = 32 * samplingStep
