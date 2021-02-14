@@ -16,40 +16,45 @@ public enum ImageTransformationError: Error {
 
 final class ImageTransformations {
     
-    static func frame(image: UIImage, color: UIColor) -> UIImage {
-        let square = Config.imageSize
-        let width = image.size.width
-        let height = image.size.height
+    static func framePlanar8(image: UIImage, color: UIColor) -> UIImage {
+        guard let cgImage = image.cgImage else {
+            fatalError("Unable to get CGImage.")
+        }
         
-        let size = CGSize(width: square, height: square)
+        let square = Int(Config.imageSize)
+        let width = Int(image.size.width)
+        let height = Int(image.size.height)
+        
         let rect = CGRect(
-            x: (square - width) / 2,
-            y: (square - height) / 2,
+            x: Int(Double(square - width) / 2.0),
+            y: Int(Double(square - height) / 2.0),
             width: width,
             height: height
         )
         
-        UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
-        
-        if let context = UIGraphicsGetCurrentContext() {
-            color.setFill()
-            context.fill(CGRect(x: 0, y: 0, width: square, height: square))
+        guard let cgContext = CGContext(
+            data: nil,
+            width: square,
+            height: square,
+            bitsPerComponent: cgImage.bitsPerComponent,
+            bytesPerRow: square,
+            space: cgImage.colorSpace ?? CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: cgImage.alphaInfo.rawValue
+        ) else {
+            fatalError("Unable to create CGContext.")
         }
         
-        image.draw(in: rect)
-        
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-        
-        if let newImage = newImage {
-            return newImage
-        } else {
-            NSLog("Failed to resize image.")
-            return image
+        cgContext.setFillColor(color.cgColor)
+        cgContext.fill(CGRect(x: 0, y: 0, width: cgContext.width, height: cgContext.height))
+        cgContext.draw(cgImage, in: rect)
+
+        guard let newCgImage = cgContext.makeImage() else {
+            fatalError("Unable to create CGImage from CGContext.")
         }
+
+        return UIImage(cgImage: newCgImage)
     }
     
-    // monochrome.
     static func planar8(from image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage else {
             fatalError("Unable to get CGImage.")

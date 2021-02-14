@@ -23,6 +23,6 @@ public extension UIImage {
     }
     
     func frame(with color: UIColor) -> UIImage {
-        ImageTransformations.frame(image: self, color: color)
+        ImageTransformations.framePlanar8(image: self, color: color)
     }
 }
