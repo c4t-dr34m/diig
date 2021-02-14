@@ -23,7 +23,7 @@ final class ImagePickerCoordinator: NSObject, UIImagePickerControllerDelegate, U
         didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]
     ) {
         if let image = info[UIImagePickerController.InfoKey.originalImage] as? UIImage {
-            self.image = image.resize(toFitSquare: Int(Config.imageInset)).monochrome
+            self.image = image.planar.scale(toFitSquare: Int(Config.imageInset))
         }
  
         isPresented = false

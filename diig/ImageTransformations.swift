@@ -28,7 +28,7 @@ final class ImageTransformations {
             width: width,
             height: height
         )
-
+        
         UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
         
         if let context = UIGraphicsGetCurrentContext() {
@@ -40,7 +40,7 @@ final class ImageTransformations {
         
         let newImage = UIGraphicsGetImageFromCurrentImageContext()
         UIGraphicsEndImageContext()
-
+        
         if let newImage = newImage {
             return newImage
         } else {
@@ -49,40 +49,8 @@ final class ImageTransformations {
         }
     }
     
-    // outputs rgba8888 image no matter the input.56
-    static func resize(image: UIImage, toFitSquare targetSize: Int) -> UIImage {
-        let ratioHorizontal  = CGFloat(targetSize) / image.size.width
-        let ratioVertical = CGFloat(targetSize) / image.size.height
-        
-        let width: CGFloat
-        let height: CGFloat
-        if ratioHorizontal < ratioVertical {
-            width = image.size.width * ratioHorizontal
-            height = image.size.height * ratioHorizontal
-        } else {
-            width = image.size.width * ratioVertical
-            height = image.size.height * ratioVertical
-        }
-
-        let size = CGSize(width: width, height: height)
-        let rect = CGRect(x: 0, y: 0, width: width, height: height)
-
-        UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
-        image.draw(in: rect)
-        
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        if let newImage = newImage {
-            return newImage
-        } else {
-            NSLog("Failed to resize image.")
-            return image
-        }
-    }
-    
-    // monochrome, planar8.
-    static func convertToTrueMonochrome(image: UIImage) -> UIImage {
+    // monochrome.
+    static func planar8(from image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage else {
             fatalError("Unable to get CGImage.")
         }
@@ -138,12 +106,64 @@ final class ImageTransformations {
         return UIImage(cgImage: result)
     }
     
+    static func scalePlanar8(image: UIImage, to targetSize: Int) -> UIImage {
+        guard let cgImage = image.cgImage else {
+            fatalError("Unable to get CGImage.")
+        }
+        
+        let ratioHorizontal  = CGFloat(targetSize) / image.size.width
+        let ratioVertical = CGFloat(targetSize) / image.size.height
+        
+        let width: CGFloat
+        let height: CGFloat
+        if ratioHorizontal < ratioVertical {
+            width = image.size.width * ratioHorizontal
+            height = image.size.height * ratioHorizontal
+        } else {
+            width = image.size.width * ratioVertical
+            height = image.size.height * ratioVertical
+        }
+        
+        let size = CGSize(width: width, height: height)
+        
+        var sourceBuffer = getSourceBuffer(for: cgImage)
+        var destinationBuffer = getDestinationBuffer(for: cgImage, size: size, with: sourceBuffer)
+        
+        defer {
+            sourceBuffer.free()
+            destinationBuffer.free()
+        }
+        
+        vImageScale_Planar8(
+            &sourceBuffer,
+            &destinationBuffer,
+            nil,
+            vImage_Flags(kvImageNoFlags)
+        )
+        
+        guard let monoFormat = vImage_CGImageFormat(
+            bitsPerComponent: 8,
+            bitsPerPixel: 8,
+            colorSpace: CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+            renderingIntent: .defaultIntent
+        ) else {
+            fatalError("Unable to create monochrome image.")
+        }
+        
+        guard let result = try? destinationBuffer.createCGImage(format: monoFormat) else {
+            fatalError("Unable to create image")
+        }
+        
+        return UIImage(cgImage: result)
+    }
+    
     static func dither(image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
             NSLog("Can't dither. The image is not Planar8.")
             return image
         }
-
+        
         guard let data = ImageTransformations.data(from: image) else {
             NSLog("Failed to get image data for dithering.")
             return image
@@ -156,30 +176,6 @@ final class ImageTransformations {
             return ditheredImage
         } else {
             return image
-        }
-    }
-    
-    static func luminance(of pixel: CGPoint, in image: UIImage) -> CGFloat {
-        guard let cgImage = image.cgImage else {
-            return -1.0
-        }
-        
-        let data = data(from: image)
-        guard let pointer = CFDataGetBytePtr(data) else {
-            return -1.0
-        }
-        
-        let bpp = cgImage.bitsPerPixel
-        if bpp == 8 {
-            let pixelInfo: Int = ((Int(image.size.width) * Int(pixel.y)) + Int(pixel.x))
-            
-            return CGFloat(pointer[pixelInfo]) / CGFloat(255)
-        } else if bpp == 32 {
-            let pixelInfo: Int = ((Int(image.size.width) * Int(pixel.y)) + Int(pixel.x)) * 4
-            
-            return CGFloat(pointer[pixelInfo] + 1) / CGFloat(255) // green (?) channel
-        } else {
-            return -1.0
         }
     }
     
@@ -234,10 +230,24 @@ final class ImageTransformations {
         return sourceImageBuffer
     }
     
-    private static func getDestinationBuffer(for image: CGImage, with sourceBuffer: vImage_Buffer) -> vImage_Buffer {
+    private static func getDestinationBuffer(
+        for image: CGImage,
+        size: CGSize? = nil,
+        with sourceBuffer: vImage_Buffer
+    ) -> vImage_Buffer {
+        let width: Int
+        let height: Int
+        if let size = size {
+            width = Int(size.width)
+            height = Int(size.height)
+        } else {
+            width = Int(sourceBuffer.width)
+            height = Int(sourceBuffer.height)
+        }
+        
         guard let destinationBuffer = try? vImage_Buffer(
-            width: Int(sourceBuffer.width),
-            height: Int(sourceBuffer.height),
+            width: width,
+            height: height,
             bitsPerPixel: 8
         ) else {
             fatalError("Unable to create destination buffers.")

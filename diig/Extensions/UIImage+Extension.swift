@@ -10,23 +10,19 @@ import UIKit
 
 public extension UIImage {
     
-    var monochrome: UIImage {
-        ImageTransformations.convertToTrueMonochrome(image: self)
+    var planar: UIImage {
+        ImageTransformations.planar8(from: self)
     }
     
     var dithered: UIImage {
         ImageTransformations.dither(image: self)
     }
     
-    func resize(toFitSquare targetSize: Int) -> UIImage {
-        ImageTransformations.resize(image: self, toFitSquare: targetSize)
+    func scale(toFitSquare targetSize: Int) -> UIImage {
+        ImageTransformations.scalePlanar8(image: self, to: targetSize)
     }
     
     func frame(with color: UIColor) -> UIImage {
         ImageTransformations.frame(image: self, color: color)
-    }
-    
-    func luminance(of pixel: CGPoint) -> CGFloat {
-        ImageTransformations.luminance(of: pixel, in: self)
     }
 }
