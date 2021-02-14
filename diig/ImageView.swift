@@ -22,14 +22,6 @@ struct ImageView: View {
     @State private var timer: Timer? = nil
     
     var body: some View {
-        log {
-            if let image = self.image {
-                return "image dimensions: \(image.size.width)×\(image.size.height) px"
-            } else {
-                return "image dimensions: image not yet loaded"
-            }
-        }
-
         NavigationView {
             ZStack {
                 VStack {
@@ -98,7 +90,7 @@ struct ImageView: View {
                         
                         Spacer()
                         
-                        Button(action: shareImage) {
+                        Button(action: shareImagePng) {
                             Image(systemName: "square.and.arrow.up")
                         }
                         .disabled(imageDithered == nil)
@@ -191,13 +183,13 @@ struct ImageView: View {
         }
     }
     
-    private func shareImage() {
-        guard let image = getFramedImage() else {
+    private func shareImagePng() {
+        guard let png = getFramedImage()?.pngData() else {
             return
         }
         
         let viewController = UIActivityViewController(
-            activityItems: [image],
+            activityItems: [png],
             applicationActivities: nil
         )
         

@@ -81,32 +81,6 @@ final class ImageTransformations {
         }
     }
     
-    // monochrome, but outputs still rgba8888 image.
-    static func convertToMonochrome(image: UIImage) -> UIImage {
-        guard let cgImage = image.cgImage else {
-            NSLog("Failed to get image data for discoloration.")
-            return image
-        }
-        
-        let ciImage = CIImage(cgImage: cgImage)
-
-        let filter = CIFilter(name: "CIColorMonochrome")
-        filter?.setValue(ciImage, forKey: "inputImage")
-        filter?.setValue(CIColor(red: 0.7, green: 0.7, blue: 0.7), forKey: "inputColor")
-        filter?.setValue(1.0, forKey: "inputIntensity")
-
-        guard let ciOutput = filter?.outputImage else {
-            NSLog("Failed to filter image.")
-            return image
-        }
-
-        if let cgOutput = CIContext().createCGImage(ciOutput, from: ciOutput.extent) {
-            return UIImage(cgImage: cgOutput)
-        }
-        
-        return image
-    }
-    
     // monochrome, planar8.
     static func convertToTrueMonochrome(image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage else {
@@ -178,36 +152,55 @@ final class ImageTransformations {
         let riemersma = Riemersma(with: data, size: image.size)
         let ditheredData = riemersma.getDitheredImage()
         
-        if let ditheredImage = ImageTransformations.image(from: ditheredData, original: image) {
+        if let ditheredImage = ImageTransformations.image(from: ditheredData, size: image.size) {
             return ditheredImage
         } else {
             return image
         }
     }
     
-    static func image(from data: CFData, original: UIImage) -> UIImage? {
-        guard let originalCgImage = original.cgImage else {
-            NSLog("Failed to create CGImage from original UIImage.")
-            return nil
+    static func luminance(of pixel: CGPoint, in image: UIImage) -> CGFloat {
+        guard let cgImage = image.cgImage else {
+            return -1.0
         }
         
+        let data = data(from: image)
+        guard let pointer = CFDataGetBytePtr(data) else {
+            return -1.0
+        }
+        
+        let bpp = cgImage.bitsPerPixel
+        if bpp == 8 {
+            let pixelInfo: Int = ((Int(image.size.width) * Int(pixel.y)) + Int(pixel.x))
+            
+            return CGFloat(pointer[pixelInfo]) / CGFloat(255)
+        } else if bpp == 32 {
+            let pixelInfo: Int = ((Int(image.size.width) * Int(pixel.y)) + Int(pixel.x)) * 4
+            
+            return CGFloat(pointer[pixelInfo] + 1) / CGFloat(255) // green (?) channel
+        } else {
+            return -1.0
+        }
+    }
+    
+    static func image(from data: CFData, size: CGSize) -> UIImage? {
         guard let provider = CGDataProvider(data: data) else {
             NSLog("Failed to create CGDataProvider from raw data.")
             return nil
         }
         
         guard let cgImage = CGImage(
-            width: originalCgImage.width,
-            height: originalCgImage.height,
-            bitsPerComponent: originalCgImage.bitsPerComponent,
-            bitsPerPixel: originalCgImage.bitsPerPixel,
-            bytesPerRow: originalCgImage.bytesPerRow,
-            space: originalCgImage.colorSpace ?? CGColorSpaceCreateDeviceRGB(),
-            bitmapInfo: originalCgImage.bitmapInfo,
+            width: Int(size.width),
+            height: Int(size.height),
+            bitsPerComponent: 8,
+            bitsPerPixel: 8,
+            bytesPerRow: Int(size.width),
+            space: CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
             provider: provider,
             decode: nil,
-            shouldInterpolate: true,
-            intent: originalCgImage.renderingIntent
+            shouldInterpolate: false,
+            intent: .defaultIntent
         ) else {
             NSLog("Failed to create CGImage from CGImageProvider.")
             return nil

@@ -25,4 +25,8 @@ public extension UIImage {
     func frame(with color: UIColor) -> UIImage {
         ImageTransformations.frame(image: self, color: color)
     }
+    
+    func luminance(of pixel: CGPoint) -> CGFloat {
+        ImageTransformations.luminance(of: pixel, in: self)
+    }
 }
