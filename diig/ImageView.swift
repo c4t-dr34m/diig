@@ -124,21 +124,16 @@ struct ImageView: View {
     
     private var emptyView: some View {
         if image == nil {
-            let view = VStack {
-                Image(systemName: "questionmark.circle")
-                    .font(.system(size: 92, weight: .thin))
+            let view = VStack() {
+                Image(systemName: "arrow.up.forward")
+                    .font(.system(size: 128, weight: .ultraLight))
+                    .opacity(0.2)
                 
-                HStack {
-                    Text("pick a photo from gallery")
-                        .font(.body)
-                    
-                    Image(systemName: "arrow.up.forward")
-                        .font(.body)
-                }
-                .padding(.top)
+                Text("pick a photo from gallery")
+                    .font(.body)
+                    .opacity(0.5)
+                    .padding(.top)
             }
-            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
-            .edgesIgnoringSafeArea(.all)
             
             return AnyView(view)
         } else {
