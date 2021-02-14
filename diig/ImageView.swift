@@ -115,8 +115,36 @@ struct ImageView: View {
                     return ImagePicker(image: $image, isPresented: $isPickerPresented, sourceType: .photoLibrary)
                 }
                 
+                emptyView
                 progressView
             }
+        }
+        .accentColor(colorScheme == .dark ? .white : .black)
+    }
+    
+    private var emptyView: some View {
+        if image == nil {
+            let view = VStack {
+                Image(systemName: "questionmark.circle")
+                    .font(.system(size: 92, weight: .thin))
+                
+                HStack {
+                    Text("pick a photo from gallery")
+                        .font(.body)
+                    
+                    Image(systemName: "arrow.up.forward")
+                        .font(.body)
+                }
+                .padding(.top)
+            }
+            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+            .edgesIgnoringSafeArea(.all)
+            
+            return AnyView(view)
+        } else {
+            let view = EmptyView()
+            
+            return AnyView(view)
         }
     }
     
