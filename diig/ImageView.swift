@@ -22,6 +22,14 @@ struct ImageView: View {
     @State private var timer: Timer? = nil
     
     var body: some View {
+        log {
+            if let image = self.image {
+                return "image dimensions: \(image.size.width)×\(image.size.height) px"
+            } else {
+                return "image dimensions: image not yet loaded"
+            }
+        }
+
         NavigationView {
             ZStack {
                 VStack {
@@ -200,8 +208,8 @@ struct ImageView: View {
         )
     }
     
-    private func log(_ message: String) -> EmptyView {
-        NSLog(message)
+    private func log(_ logging: () -> String) -> EmptyView {
+        NSLog(logging())
         
         return EmptyView()
     }

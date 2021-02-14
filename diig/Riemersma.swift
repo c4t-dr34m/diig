@@ -4,6 +4,8 @@
 //
 //  Created by Radovan Paška on 13.02.2021.
 //
+//  implementation if riemersma dither: https://www.compuphase.com/riemer.htm
+//
 
 import Foundation
 import UIKit
@@ -32,6 +34,9 @@ final class Riemersma {
     private var weights = Array<CGFloat>(repeating: 0.0, count: size)
     private var errors = Array<CGFloat>(repeating: 0.0, count: size)
     
+    /*
+     works with true monochrome images; planar8.
+     */
     public init(with data: CFMutableData, size: CGSize) {
         self.imageData = data
         self.imageSize = size
@@ -73,18 +78,15 @@ final class Riemersma {
     }
     
     private func getLuminance(for pixel: CGPoint) -> CGFloat {
-        let pixelInfo: Int = ((Int(imageSize.width) * Int(pixel.y)) + Int(pixel.x)) * 4
+        let pixelInfo: Int = ((Int(imageSize.width) * Int(pixel.y)) + Int(pixel.x))
         
         return CGFloat(imageDataPointer[pixelInfo]) / CGFloat(255)
     }
     
     private func saveLuminance(_ luminance: CGFloat, for pixel: CGPoint) {
-        let pixelInfo: Int = ((Int(imageSize.width) * Int(pixel.y)) + Int(pixel.x)) * 4
+        let pixelInfo: Int = ((Int(imageSize.width) * Int(pixel.y)) + Int(pixel.x))
 
         imageDataPointer[pixelInfo] = UInt8(luminance * CGFloat(255))
-        imageDataPointer[pixelInfo + 1] = UInt8(luminance * CGFloat(255))
-        imageDataPointer[pixelInfo + 2] = UInt8(luminance * CGFloat(255))
-        imageDataPointer[pixelInfo + 3] = 255 // opacity
     }
     
     private func dither(_ luminance: CGFloat) -> CGFloat {

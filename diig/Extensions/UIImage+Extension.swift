@@ -11,7 +11,7 @@ import UIKit
 public extension UIImage {
     
     var monochrome: UIImage {
-        ImageTransformations.convertToMonochrome(image: self)
+        ImageTransformations.convertToTrueMonochrome(image: self)
     }
     
     var dithered: UIImage {
@@ -24,15 +24,5 @@ public extension UIImage {
     
     func frame(with color: UIColor) -> UIImage {
         ImageTransformations.frame(image: self, color: color)
-    }
-    
-    func pixelLuminance(x: Int, y: Int) -> CGFloat {
-        do {
-            return try ImageTransformations.getLuminance(for: CGPoint(x: x, y: y), from: self)
-        } catch {
-            NSLog("Cannot obtain pixel luminosity: \(error.localizedDescription)")
-        }
-        
-        return -1.0
     }
 }

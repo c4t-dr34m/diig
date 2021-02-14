@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import Accelerate
 
 public enum ImageTransformationError: Error {
     case noImageData
@@ -14,37 +15,6 @@ public enum ImageTransformationError: Error {
 }
 
 final class ImageTransformations {
-    
-    static func resize(image: UIImage, toFitSquare targetSize: Int) -> UIImage {
-        let ratioHorizontal  = CGFloat(targetSize) / image.size.width
-        let ratioVertical = CGFloat(targetSize) / image.size.height
-        
-        let width: CGFloat
-        let height: CGFloat
-        if ratioHorizontal < ratioVertical {
-            width = image.size.width * ratioHorizontal
-            height = image.size.height * ratioHorizontal
-        } else {
-            width = image.size.width * ratioVertical
-            height = image.size.height * ratioVertical
-        }
-
-        let size = CGSize(width: width, height: height)
-        let rect = CGRect(x: 0, y: 0, width: width, height: height)
-
-        UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
-        image.draw(in: rect)
-        
-        let newImage = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
-
-        if let newImage = newImage {
-            return newImage
-        } else {
-            NSLog("Failed to resize image.")
-            return image
-        }
-    }
     
     static func frame(image: UIImage, color: UIColor) -> UIImage {
         let square = Config.imageSize
@@ -79,6 +49,39 @@ final class ImageTransformations {
         }
     }
     
+    // outputs rgba8888 image no matter the input.56
+    static func resize(image: UIImage, toFitSquare targetSize: Int) -> UIImage {
+        let ratioHorizontal  = CGFloat(targetSize) / image.size.width
+        let ratioVertical = CGFloat(targetSize) / image.size.height
+        
+        let width: CGFloat
+        let height: CGFloat
+        if ratioHorizontal < ratioVertical {
+            width = image.size.width * ratioHorizontal
+            height = image.size.height * ratioHorizontal
+        } else {
+            width = image.size.width * ratioVertical
+            height = image.size.height * ratioVertical
+        }
+
+        let size = CGSize(width: width, height: height)
+        let rect = CGRect(x: 0, y: 0, width: width, height: height)
+
+        UIGraphicsBeginImageContextWithOptions(size, false, 1.0)
+        image.draw(in: rect)
+        
+        let newImage = UIGraphicsGetImageFromCurrentImageContext()
+        UIGraphicsEndImageContext()
+
+        if let newImage = newImage {
+            return newImage
+        } else {
+            NSLog("Failed to resize image.")
+            return image
+        }
+    }
+    
+    // monochrome, but outputs still rgba8888 image.
     static func convertToMonochrome(image: UIImage) -> UIImage {
         guard let cgImage = image.cgImage else {
             NSLog("Failed to get image data for discoloration.")
@@ -104,7 +107,69 @@ final class ImageTransformations {
         return image
     }
     
+    // monochrome, planar8.
+    static func convertToTrueMonochrome(image: UIImage) -> UIImage {
+        guard let cgImage = image.cgImage else {
+            fatalError("Unable to get CGImage.")
+        }
+        
+        let redCoefficient: Float = 0.2126
+        let greenCoefficient: Float = 0.7152
+        let blueCoefficient: Float = 0.0722
+        
+        let divisor: Int32 = 0x1000
+        let fDivisor = Float(divisor)
+        
+        var coefficientsMatrix = [
+            Int16(redCoefficient * fDivisor),
+            Int16(greenCoefficient * fDivisor),
+            Int16(blueCoefficient * fDivisor)
+        ]
+        
+        let preBias: [Int16] = [0, 0, 0, 0]
+        let postBias: Int32 = 0
+        
+        var sourceBuffer = getSourceBuffer(for: cgImage)
+        var destinationBuffer = getDestinationBuffer(for: cgImage, with: sourceBuffer)
+        
+        defer {
+            sourceBuffer.free()
+            destinationBuffer.free()
+        }
+        
+        vImageMatrixMultiply_ARGB8888ToPlanar8(
+            &sourceBuffer,
+            &destinationBuffer,
+            &coefficientsMatrix,
+            divisor,
+            preBias,
+            postBias,
+            vImage_Flags(kvImageNoFlags)
+        )
+        
+        guard let monoFormat = vImage_CGImageFormat(
+            bitsPerComponent: 8,
+            bitsPerPixel: 8,
+            colorSpace: CGColorSpaceCreateDeviceGray(),
+            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+            renderingIntent: .defaultIntent
+        ) else {
+            fatalError("Unable to create monochrome image.")
+        }
+        
+        guard let result = try? destinationBuffer.createCGImage(format: monoFormat) else {
+            fatalError("Unable to create image")
+        }
+        
+        return UIImage(cgImage: result)
+    }
+    
     static func dither(image: UIImage) -> UIImage {
+        guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
+            NSLog("Can't dither. The image is not Planar8.")
+            return image
+        }
+
         guard let data = ImageTransformations.data(from: image) else {
             NSLog("Failed to get image data for dithering.")
             return image
@@ -121,13 +186,13 @@ final class ImageTransformations {
     }
     
     static func image(from data: CFData, original: UIImage) -> UIImage? {
-        guard let provider = CGDataProvider(data: data) else {
-            NSLog("Failed to create CGDataProvider from raw data.")
+        guard let originalCgImage = original.cgImage else {
+            NSLog("Failed to create CGImage from original UIImage.")
             return nil
         }
         
-        guard let originalCgImage = original.cgImage else {
-            NSLog("Failed to create CGImage from original UIImage.")
+        guard let provider = CGDataProvider(data: data) else {
+            NSLog("Failed to create CGDataProvider from raw data.")
             return nil
         }
         
@@ -162,23 +227,37 @@ final class ImageTransformations {
         return CFDataCreateMutableCopy(kCFAllocatorDefault, length, data)
     }
     
-    static func getLuminance(for pixel: CGPoint, from image: UIImage) throws -> CGFloat {
-        guard let data = ImageTransformations.data(from: image) else {
-            throw ImageTransformationError.noImageData
+    private static func getSourceBuffer(for image: CGImage) -> vImage_Buffer {
+        let format = format(of: image)
+        
+        guard
+            let sourceImageBuffer = try? vImage_Buffer(
+                cgImage: image,
+                format: format
+            ) else {
+            fatalError("Unable to create source buffer.")
         }
         
-        let pixelData: UnsafePointer<UInt8> = CFDataGetBytePtr(data)
-        let pixelInfo: Int = ((Int(image.size.width) * Int(pixel.y)) + Int(pixel.x)) * 4
-        
-        let r = CGFloat(pixelData[pixelInfo]) / CGFloat(255)
-        let g = CGFloat(pixelData[pixelInfo + 1]) / CGFloat(255)
-        let b = CGFloat(pixelData[pixelInfo + 2]) / CGFloat(255)
-        // let a = CGFloat(pixelData[pixelInfo + 3]) / CGFloat(255)
-        
-        guard r == g && g == b else {
-            throw ImageTransformationError.pixelNotMonochrome
+        return sourceImageBuffer
+    }
+    
+    private static func getDestinationBuffer(for image: CGImage, with sourceBuffer: vImage_Buffer) -> vImage_Buffer {
+        guard let destinationBuffer = try? vImage_Buffer(
+            width: Int(sourceBuffer.width),
+            height: Int(sourceBuffer.height),
+            bitsPerPixel: 8
+        ) else {
+            fatalError("Unable to create destination buffers.")
         }
         
-        return r
+        return destinationBuffer
+    }
+    
+    static func format(of image: CGImage) -> vImage_CGImageFormat {
+        guard let format = vImage_CGImageFormat(cgImage: image) else {
+            fatalError("Unable to get CGImage format.")
+        }
+        
+        return format
     }
 }
