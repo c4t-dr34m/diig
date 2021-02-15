@@ -10,68 +10,7 @@ import UIKit
 import SwiftUI
 import Accelerate
 
-public enum ImageTransformationError: Error {
-    case noImageData
-    case pixelNotMonochrome
-}
-
-final class ImageTransformations {
-
-    static func planar8(from image: UIImage) -> UIImage {
-        guard let cgImage = image.cgImage else {
-            fatalError("Unable to get CGImage.")
-        }
-        
-        let redCoefficient: Float = 0.2126
-        let greenCoefficient: Float = 0.7152
-        let blueCoefficient: Float = 0.0722
-        
-        let divisor: Int32 = 0x1000
-        let fDivisor = Float(divisor)
-        
-        var coefficientsMatrix = [
-            Int16(redCoefficient * fDivisor),
-            Int16(greenCoefficient * fDivisor),
-            Int16(blueCoefficient * fDivisor)
-        ]
-        
-        let preBias: [Int16] = [0, 0, 0, 0]
-        let postBias: Int32 = 0
-        
-        var sourceBuffer = getSourceBuffer(for: cgImage)
-        var destinationBuffer = getDestinationBuffer(for: cgImage, with: sourceBuffer)
-        
-        defer {
-            sourceBuffer.free()
-            destinationBuffer.free()
-        }
-        
-        vImageMatrixMultiply_ARGB8888ToPlanar8(
-            &sourceBuffer,
-            &destinationBuffer,
-            &coefficientsMatrix,
-            divisor,
-            preBias,
-            postBias,
-            vImage_Flags(kvImageNoFlags)
-        )
-        
-        guard let monoFormat = vImage_CGImageFormat(
-            bitsPerComponent: 8,
-            bitsPerPixel: 8,
-            colorSpace: CGColorSpaceCreateDeviceGray(),
-            bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
-            renderingIntent: .defaultIntent
-        ) else {
-            fatalError("Unable to create monochrome image.")
-        }
-        
-        guard let result = try? destinationBuffer.createCGImage(format: monoFormat) else {
-            fatalError("Unable to create image")
-        }
-        
-        return UIImage(cgImage: result)
-    }
+final class Transformations {
     
     static func scalePlanar8(image: UIImage, to targetSize: Int) -> UIImage {
         guard let cgImage = image.cgImage, cgImage.bitsPerPixel == 8 else {
@@ -93,8 +32,12 @@ final class ImageTransformations {
         
         let size = CGSize(width: width, height: height)
         
-        var sourceBuffer = getSourceBuffer(for: cgImage)
-        var destinationBuffer = getDestinationBuffer(for: cgImage, size: size, with: sourceBuffer)
+        var sourceBuffer = VImageBuffers.getSourceBuffer(for: cgImage)
+        var destinationBuffer = VImageBuffers.getDestinationBuffer(
+            for: cgImage,
+            size: size,
+            with: sourceBuffer
+        )
         
         defer {
             sourceBuffer.free()
@@ -169,15 +112,11 @@ final class ImageTransformations {
             fatalError("Unable to get CGImage. Maybe it's not Planar8.")
         }
 
-        guard let data = ImageTransformations.data(from: image) else {
-            NSLog("Failed to get image data for dithering.")
-            return image
-        }
-        
+        let data = Transformations.data(from: image)
         let riemersma = Riemersma(with: data, size: image.size, progress: progress)
         let ditheredData = riemersma.getDitheredImage()
         
-        if let ditheredImage = ImageTransformations.image(from: ditheredData, size: image.size) {
+        if let ditheredImage = Transformations.image(from: ditheredData, size: image.size) {
             return ditheredImage
         } else {
             return image
@@ -186,8 +125,7 @@ final class ImageTransformations {
     
     static func image(from data: CFData, size: CGSize) -> UIImage? {
         guard let provider = CGDataProvider(data: data) else {
-            NSLog("Failed to create CGDataProvider from raw data.")
-            return nil
+            fatalError("Failed to create CGDataProvider from raw data.")
         }
         
         guard let cgImage = CGImage(
@@ -203,69 +141,20 @@ final class ImageTransformations {
             shouldInterpolate: false,
             intent: .defaultIntent
         ) else {
-            NSLog("Failed to create CGImage from CGImageProvider.")
-            return nil
+            fatalError("Failed to create CGImage from CGImageProvider.")
         }
         
         return UIImage(cgImage: cgImage)
     }
     
-    static func data(from image: UIImage) -> CFMutableData? {
+    static func data(from image: UIImage) -> CFMutableData {
         guard let cgImage = image.cgImage, let cgImageData = cgImage.dataProvider else {
-            return nil
+            fatalError("Unable to get image data.")
         }
         
         let data = cgImageData.data
         let length = CFDataGetLength(data)
         
         return CFDataCreateMutableCopy(kCFAllocatorDefault, length, data)
-    }
-    
-    private static func getSourceBuffer(for image: CGImage) -> vImage_Buffer {
-        let format = format(of: image)
-        
-        guard
-            let sourceImageBuffer = try? vImage_Buffer(
-                cgImage: image,
-                format: format
-            ) else {
-            fatalError("Unable to create source buffer.")
-        }
-        
-        return sourceImageBuffer
-    }
-    
-    private static func getDestinationBuffer(
-        for image: CGImage,
-        size: CGSize? = nil,
-        with sourceBuffer: vImage_Buffer
-    ) -> vImage_Buffer {
-        let width: Int
-        let height: Int
-        if let size = size {
-            width = Int(size.width)
-            height = Int(size.height)
-        } else {
-            width = Int(sourceBuffer.width)
-            height = Int(sourceBuffer.height)
-        }
-        
-        guard let destinationBuffer = try? vImage_Buffer(
-            width: width,
-            height: height,
-            bitsPerPixel: 8
-        ) else {
-            fatalError("Unable to create destination buffers.")
-        }
-        
-        return destinationBuffer
-    }
-    
-    static func format(of image: CGImage) -> vImage_CGImageFormat {
-        guard let format = vImage_CGImageFormat(cgImage: image) else {
-            fatalError("Unable to get CGImage format.")
-        }
-        
-        return format
     }
 }
