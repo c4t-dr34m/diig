@@ -39,9 +39,6 @@ final class Riemersma {
     private var weights: Array<CGFloat>
     private var errors: Array<CGFloat>
     
-    /*
-     works with true monochrome images; planar8.
-     */
     public init(
         with data: CFMutableData,
         size: CGSize,
