@@ -12,7 +12,7 @@ import UIKit
 public extension UIImage {
     
     var planar: UIImage {
-        Decolorize.planar8(from: self)
+        Transformations.planar8(from: self)
     }
     
     func dither(progress: Binding<Float>) -> UIImage {

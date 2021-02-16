@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		215298FC25DB03BA002288D3 /* Decolorize.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215298FB25DB03BA002288D3 /* Decolorize.swift */; };
 		215298FF25DB04E5002288D3 /* VImageBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215298FE25DB04E5002288D3 /* VImageBuffers.swift */; };
 		217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */; };
 		21BD375D25D97FA700F21749 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 21BD375C25D97FA700F21749 /* Settings.bundle */; };
@@ -23,7 +22,6 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		215298FB25DB03BA002288D3 /* Decolorize.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Decolorize.swift; sourceTree = "<group>"; };
 		215298FE25DB04E5002288D3 /* VImageBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VImageBuffers.swift; sourceTree = "<group>"; };
 		217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
 		21BD375C25D97FA700F21749 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
@@ -54,7 +52,6 @@
 		215298FD25DB03C6002288D3 /* Stuff to Convert Images */ = {
 			isa = PBXGroup;
 			children = (
-				215298FB25DB03BA002288D3 /* Decolorize.swift */,
 				21C474ED25D7D70300B713E6 /* Transformations.swift */,
 				21C4750425D80A2E00B713E6 /* Riemersma.swift */,
 				215298FE25DB04E5002288D3 /* VImageBuffers.swift */,
@@ -191,7 +188,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				215298FF25DB04E5002288D3 /* VImageBuffers.swift in Sources */,
-				215298FC25DB03BA002288D3 /* Decolorize.swift in Sources */,
 				217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */,
 				21EC580125D6EFC7002E248A /* ImagePicker.swift in Sources */,
 				21F00E6A25D6E41600C2C281 /* ImageView.swift in Sources */,
