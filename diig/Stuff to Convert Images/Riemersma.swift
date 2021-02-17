@@ -170,6 +170,42 @@ final class Riemersma {
         let triangles = Delaunay().triangulate(vertices)
         
         // todo: compute average luminance for each triangle
+        var triangleLuminancies = [Float]()
+        triangleLuminancies.reserveCapacity(triangles.count)
+        
+        for i in 0..<triangles.count {
+            let triangle = triangles[i]
+            
+            var x = [Double.greatestFiniteMagnitude, -Double.greatestFiniteMagnitude] // min, max
+            
+            x[0] = min(x[0], triangle.point1.x)
+            x[0] = min(x[0], triangle.point2.x)
+            x[0] = min(x[0], triangle.point3.x)
+            x[1] = max(x[1], triangle.point1.x)
+            x[1] = max(x[1], triangle.point2.x)
+            x[1] = max(x[1], triangle.point3.x)
+
+            var y = [Double.greatestFiniteMagnitude, -Double.greatestFiniteMagnitude] // min, max
+
+            y[0] = min(y[0], triangle.point1.y)
+            y[0] = min(y[0], triangle.point2.y)
+            y[0] = min(y[0], triangle.point3.y)
+            y[1] = max(y[1], triangle.point1.y)
+            y[1] = max(y[1], triangle.point2.y)
+            y[1] = max(y[1], triangle.point3.y)
+
+            var totalLuminance = Float(0.0)
+            var totalPixels = 0
+            
+            for inX in stride(from: x[0], to: x[1], by: 1.0) {
+                for inY in stride(from: y[0], to: y[1], by: 1.0) {
+                    // todo: check if pixel is within triangle
+                }
+            }
+            
+            triangleLuminancies[i] = totalLuminance / Float(totalPixels)
+        }
+        
         // todo: fill triangle with pixels to match average luminance; start from centroid; continue ccw
     }
     
