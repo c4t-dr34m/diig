@@ -152,8 +152,15 @@ struct ImageView: View {
                 background = Color.white.opacity(0.3)
             }
             
+            let label: String
+            if ditheringProgress <= 0.01 {
+                label = "mapping pixels..."
+            } else {
+                label = "dithering image..."
+            }
+            
             let view = ZStack {
-                ProgressView("dithering…", value: ditheringProgress, total: Float(1.0))
+                ProgressView(label, value: ditheringProgress, total: Float(1.0))
                     .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 50)
             }

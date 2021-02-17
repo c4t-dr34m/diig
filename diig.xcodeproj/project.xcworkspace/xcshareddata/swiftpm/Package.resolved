@@ -1,0 +1,16 @@
+{
+  "object": {
+    "pins": [
+      {
+        "package": "Delaunay",
+        "repositoryURL": "git@github.com:sakrist/Delaunay.git",
+        "state": {
+          "branch": "main",
+          "revision": "4c2c2c5ad0f971059a681d192136f1ebb54eb8d2",
+          "version": null
+        }
+      }
+    ]
+  },
+  "version": 1
+}

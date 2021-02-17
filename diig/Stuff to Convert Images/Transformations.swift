@@ -173,7 +173,7 @@ final class Transformations {
 
         let data = Transformations.data(from: image)
         let riemersma = Riemersma(with: data, size: image.size, progress: progress)
-        let ditheredData = riemersma.getDitheredImage()
+        let ditheredData = riemersma.dither()
         
         if let ditheredImage = Transformations.image(from: ditheredData, size: image.size) {
             return ditheredImage

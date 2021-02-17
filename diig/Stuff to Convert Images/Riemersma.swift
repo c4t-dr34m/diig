@@ -10,6 +10,12 @@
 import Foundation
 import UIKit
 import SwiftUI
+import Delaunay
+
+public enum Path {
+    case hilbert
+    case rsf
+}
 
 private enum Direction {
     case none
@@ -26,6 +32,7 @@ final class Riemersma {
     private let imageData: CFMutableData
     private let imageDataPointer: UnsafeMutablePointer<UInt8>
     private let imageSize: CGSize
+    private let imagePixels: Int
     private let samplingStep: Int // count `samplingStep^2` pixel as one
 
     private var dithered = false
@@ -46,6 +53,7 @@ final class Riemersma {
     ) {
         self.imageData = data
         self.imageSize = size
+        self.imagePixels = Int(size.width * size.height)
         self.imageDataPointer = CFDataGetMutableBytePtr(imageData)
 
         self._ditheringProgress = progress
@@ -65,85 +73,37 @@ final class Riemersma {
         NSLog("Sampling step: \(self.samplingStep)")
     }
     
-    public func getDitheredImage() -> CFMutableData {
+    public func dither(using path: Path = .rsf) -> CFMutableData { // todo: switch to .hilbert
         guard !dithered else {
             return imageData
         }
         
         initWeights()
         
-        let step = CGFloat(samplingStep)
-        let size = max(imageSize.width / step, imageSize.height / step)
-        var level = Int(log2(size))
-
-        if ((1 << level) < Int(size)) {
-            level += 1
+        switch path {
+        case .hilbert:
+            hilbert()
+        case .rsf:
+            rsf()
         }
         
-        if level > 0 {
-            hilbert(level: level, direction: .up)
-        }
-        
-        move(to: .none)
         dithered = true
         
         return imageData
     }
     
-    private func initWeights() {
-        let m: CGFloat = CGFloat(exp(log(Double(weightDiff)) / Double(cacheSize - 1)))
-        var v: CGFloat = 1.0
-        
-        for i in 0...(cacheSize - 1) {
-            weights[i] = v + 0.5
-            v *= m
-        }
+    // MARK:- Riemersma
+    
+    private func dither(index: Int) {
+        var luminance = getLuminance(for: index)
+        luminance = dither(luminance)
+        setLuminance(luminance, for: index)
     }
     
-    private func getLuminance(for pixel: CGPoint) -> CGFloat {
-        var totalLuminosity: CGFloat = 0.0
-        var pixelsCounted: CGFloat = 0.0
-        
-        for x in 0..<samplingStep {
-            for y in 0..<samplingStep {
-                let pxX = pixel.x + CGFloat(x)
-                let pxY = pixel.y + CGFloat(y)
-                
-                if pxX > imageSize.width || pxY > imageSize.height {
-                    continue
-                }
-                
-                let pixelInfo = (Int(imageSize.width) * (Int(pixel.y) + y) + (Int(pixel.x) + x))
-                
-                totalLuminosity += CGFloat(imageDataPointer[pixelInfo]) / CGFloat(255)
-                pixelsCounted += 1.0
-            }
-        }
-        
-        return totalLuminosity / pixelsCounted
-    }
-    
-    private func saveLuminance(_ luminance: CGFloat, for pixel: CGPoint) {
-        var pixelsCounted = 0
-        
-        for x in 0..<samplingStep {
-            for y in 0..<samplingStep {
-                let pxX = pixel.x + CGFloat(x)
-                let pxY = pixel.y + CGFloat(y)
-                
-                if pxX > imageSize.width || pxY > imageSize.height {
-                    continue
-                }
-                
-                let pixelInfo = (Int(imageSize.width) * (Int(pixel.y) + y) + (Int(pixel.x) + x))
-                imageDataPointer[pixelInfo] = UInt8(luminance * CGFloat(255))
-                
-                pixelsCounted += 1
-            }
-        }
-        
-        ditheredPixels += pixelsCounted
-        updateProgress()
+    private func dither(point: CGPoint) {
+        var luminance = getLuminance(for: point)
+        luminance = dither(luminance)
+        setLuminance(luminance, for: point)
     }
     
     private func dither(_ luminance: CGFloat) -> CGFloat {
@@ -167,29 +127,67 @@ final class Riemersma {
         return newLuminance
     }
     
-    private func move(to direction: Direction) {
-        if (currentPosition.x >= 0 && currentPosition.x < imageSize.width
-                && currentPosition.y >= 0 && currentPosition.y < imageSize.height
-        ) {
-            var luminance = getLuminance(for: currentPosition)
-            luminance = dither(luminance)
-            saveLuminance(luminance, for: currentPosition)
+    private func initWeights() {
+        let m: CGFloat = CGFloat(exp(log(Double(weightDiff)) / Double(cacheSize - 1)))
+        var v: CGFloat = 1.0
+        
+        for i in 0...(cacheSize - 1) {
+            weights[i] = v + 0.5
+            v *= m
+        }
+    }
+    
+    // MARK:- Random Space-Filling... something
+    
+    private func rsf() {
+        let step = 12 // should be divisible by 2, probably.
+        
+        // pick randomly points
+        let steppedWidth = Int(imageSize.width / CGFloat(9))
+        let steppedHeight = Int(imageSize.height / CGFloat(9))
+        
+        let offsetX = (Int(imageSize.width) % step) / 2
+        let offsetY = (Int(imageSize.height) % step) / 2
+        
+        var vertices = [Point]()
+
+        for x in 0..<steppedWidth {
+            for y in 0..<steppedHeight {
+                let randomPixel = Int.random(in: 0..<(step * step))
+                
+                let randomPixelX = (x * step) + getX(of: randomPixel, width: step) + offsetX
+                let randomPixelY = (y * step) + getY(of: randomPixel, width: step) + offsetY
+                
+                guard !isOutOfBounds(x: randomPixelX, y: randomPixelY) else {
+                    continue
+                }
+                
+                vertices.append(Point(x: Double(randomPixelX), y: Double(randomPixelY)))
+            }
         }
         
+        // todo: apply delaunay - https://github.com/sakrist/Delaunay
+        // ☝️ [Point] -> [Triangle]
+        // todo: compute average luminancy for each triangle
+        // todo: fill triangle with pixels to match average luminancy
+    }
+    
+    // MARK:- Hilbert
+    
+    private func hilbert() {
         let step = CGFloat(samplingStep)
+        let size = max(imageSize.width / step, imageSize.height / step)
+        var level = Int(log2(size))
         
-        switch (direction) {
-        case .left:
-            currentPosition.x -= step
-        case .right:
-            currentPosition.x += step
-        case .up:
-            currentPosition.y -= step
-        case .down:
-            currentPosition.y += step
-        case .none:
-            break
+        if ((1 << level) < Int(size)) {
+            level += 1
         }
+        
+        if level > 0 {
+            hilbert(level: level, direction: .up)
+        }
+        
+        move(to: .none)
     }
     
     private func hilbert(level: Int, direction: Direction) {
@@ -252,6 +250,106 @@ final class Riemersma {
                 break
             }
         }
+    }
+    
+    private func move(to direction: Direction) {
+        if (currentPosition.x >= 0 && currentPosition.x < imageSize.width
+                && currentPosition.y >= 0 && currentPosition.y < imageSize.height
+        ) {
+            var luminance = getLuminance(for: currentPosition)
+            luminance = dither(luminance)
+            setLuminance(luminance, for: currentPosition)
+        }
+        
+        let step = CGFloat(samplingStep)
+        
+        switch (direction) {
+        case .left:
+            currentPosition.x -= step
+        case .right:
+            currentPosition.x += step
+        case .up:
+            currentPosition.y -= step
+        case .down:
+            currentPosition.y += step
+        case .none:
+            break
+        }
+    }
+    
+    // MARK:- Common
+    
+    private func isOutOfBounds(x: Int, y: Int) -> Bool {
+        return x < 0 || x >= Int(imageSize.width) || y < 0 || y >= Int(imageSize.height)
+    }
+    
+    private func getX(of index: Int, width: Int) -> Int {
+        return index - (getY(of: index, width: width) * width)
+    }
+    
+    private func getY(of index: Int, width: Int) -> Int {
+        return Int(Float(index) / Float(width))
+    }
+    
+    private func getIndex(x: Int, y: Int, width: Int) -> Int {
+        return y * width + x
+    }
+    
+    private func getLuminance(for pixel: Int) -> CGFloat {
+        return CGFloat(imageDataPointer[pixel]) / CGFloat(255)
+    }
+    
+    private func getLuminance(for pixel: CGPoint) -> CGFloat {
+        var totalLuminosity: CGFloat = 0.0
+        var pixelsCounted: CGFloat = 0.0
+        
+        for x in 0..<samplingStep {
+            for y in 0..<samplingStep {
+                let pxX = pixel.x + CGFloat(x)
+                let pxY = pixel.y + CGFloat(y)
+                
+                if pxX > imageSize.width || pxY > imageSize.height {
+                    continue
+                }
+                
+                let pixelInfo = (Int(imageSize.width) * (Int(pixel.y) + y) + (Int(pixel.x) + x))
+                
+                totalLuminosity += CGFloat(imageDataPointer[pixelInfo]) / CGFloat(255)
+                pixelsCounted += 1.0
+            }
+        }
+        
+        return totalLuminosity / pixelsCounted
+    }
+    
+    private func setLuminance(_ luminance: CGFloat, for pixel: Int) {
+        imageDataPointer[pixel] = UInt8(luminance * CGFloat(255))
+        
+        ditheredPixels += 1
+        updateProgress()
+    }
+    
+    private func setLuminance(_ luminance: CGFloat, for pixel: CGPoint) {
+        var pixelsCounted = 0
+        
+        for x in 0..<samplingStep {
+            for y in 0..<samplingStep {
+                let pxX = pixel.x + CGFloat(x)
+                let pxY = pixel.y + CGFloat(y)
+                
+                if pxX > imageSize.width || pxY > imageSize.height {
+                    continue
+                }
+                
+                let pixelInfo = (Int(imageSize.width) * (Int(pixel.y) + y) + (Int(pixel.x) + x))
+                imageDataPointer[pixelInfo] = UInt8(luminance * CGFloat(255))
+                
+                pixelsCounted += 1
+            }
+        }
+        
+        ditheredPixels += pixelsCounted
+        updateProgress()
     }
     
     private func updateProgress() {

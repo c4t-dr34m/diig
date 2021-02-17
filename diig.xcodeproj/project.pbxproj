@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		210E762325DD95690027B6E7 /* Delaunay in Frameworks */ = {isa = PBXBuildFile; productRef = 210E762225DD95690027B6E7 /* Delaunay */; };
 		215298FF25DB04E5002288D3 /* VImageBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215298FE25DB04E5002288D3 /* VImageBuffers.swift */; };
 		217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */; };
 		21BD375D25D97FA700F21749 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 21BD375C25D97FA700F21749 /* Settings.bundle */; };
@@ -43,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				210E762325DD95690027B6E7 /* Delaunay in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -133,6 +135,9 @@
 			dependencies = (
 			);
 			name = diig;
+			packageProductDependencies = (
+				210E762225DD95690027B6E7 /* Delaunay */,
+			);
 			productName = diig;
 			productReference = 21F00E6425D6E41600C2C281 /* diig.app */;
 			productType = "com.apple.product-type.application";
@@ -160,6 +165,9 @@
 				Base,
 			);
 			mainGroup = 21F00E5B25D6E41500C2C281;
+			packageReferences = (
+				210E762125DD95690027B6E7 /* XCRemoteSwiftPackageReference "Delaunay" */,
+			);
 			productRefGroup = 21F00E6525D6E41600C2C281 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -384,6 +392,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		210E762125DD95690027B6E7 /* XCRemoteSwiftPackageReference "Delaunay" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:sakrist/Delaunay.git";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		210E762225DD95690027B6E7 /* Delaunay */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 210E762125DD95690027B6E7 /* XCRemoteSwiftPackageReference "Delaunay" */;
+			productName = Delaunay;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 21F00E5C25D6E41500C2C281 /* Project object */;
 }
