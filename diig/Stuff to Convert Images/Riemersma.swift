@@ -142,7 +142,7 @@ final class Riemersma {
     private func rsf() {
         let step = 12 // should be divisible by 2, probably.
         
-        // pick randomly points
+        // pick randomly points that would serve to define triangles
         let steppedWidth = Int(imageSize.width / CGFloat(9))
         let steppedHeight = Int(imageSize.height / CGFloat(9))
         
@@ -166,10 +166,11 @@ final class Riemersma {
             }
         }
         
-        // todo: apply delaunay - https://github.com/sakrist/Delaunay
-        // ☝️ [Point] -> [Triangle]
-        // todo: compute average luminancy for each triangle
-        // todo: fill triangle with pixels to match average luminancy
+        // apply delaunay to divide whole image into triangles
+        let triangles = Delaunay().triangulate(vertices)
+        
+        // todo: compute average luminance for each triangle
+        // todo: fill triangle with pixels to match average luminance; start from centroid; continue ccw
     }
     
     // MARK:- Hilbert
