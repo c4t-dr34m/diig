@@ -169,8 +169,8 @@ final class Riemersma {
         // apply delaunay to divide whole image into triangles
         let triangles = Delaunay().triangulate(vertices)
         
-        // todo: compute average luminance for each triangle
-        var triangleLuminancies = [Float]()
+        // compute average luminance for each triangle
+        var triangleLuminancies = [CGFloat]()
         triangleLuminancies.reserveCapacity(triangles.count)
         
         for i in 0..<triangles.count {
@@ -194,19 +194,27 @@ final class Riemersma {
             y[1] = max(y[1], triangle.point2.y)
             y[1] = max(y[1], triangle.point3.y)
 
-            var totalLuminance = Float(0.0)
-            var totalPixels = 0
+            var totalLuminance = CGFloat(0.0)
+            var totalPixels = CGFloat(0.0)
             
             for inX in stride(from: x[0], to: x[1], by: 1.0) {
                 for inY in stride(from: y[0], to: y[1], by: 1.0) {
-                    // todo: check if pixel is within triangle
+                    let pxIndex = getIndex(x: inX, y: inY, width: Int(imageSize.width))
+                    let pixel = Point(x: inX, y: inY)
+                    
+                    guard isInTriangle(pixel, triangle.point1, triangle.point2, triangle.point3) else {
+                        continue
+                    }
+                    
+                    totalLuminance += getLuminance(for: pxIndex)
+                    totalPixels += 1
                 }
             }
             
-            triangleLuminancies[i] = totalLuminance / Float(totalPixels)
+            triangleLuminancies[i] = totalLuminance / totalPixels
+
+            // todo: fill triangle with pixels to match average luminance; start from centroid; continue ccw
         }
-        
-        // todo: fill triangle with pixels to match average luminance; start from centroid; continue ccw
     }
     
     // MARK:- Hilbert
@@ -320,6 +328,29 @@ final class Riemersma {
         return x < 0 || x >= Int(imageSize.width) || y < 0 || y >= Int(imageSize.height)
     }
     
+    private func isInTriangle (
+        _ pixel: Point,
+        _ vertex1: Point,
+        _ vertex2: Point,
+        _ vertex3: Point
+    ) -> Bool {
+        let d1 = sign(pixel, vertex1, vertex2)
+        let d2 = sign(pixel, vertex2, vertex3)
+        let d3 = sign(pixel, vertex3, vertex1)
+
+        let hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0)
+        let hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0)
+
+        return !(hasNeg && hasPos)
+    }
+    
+    private func sign(_ vertex1: Point, _ vertex2: Point, _ vertex3: Point) -> Double {
+        let one = (vertex1.x - vertex3.x) * (vertex2.y - vertex3.y)
+        let two = (vertex2.x - vertex3.x) * (vertex1.y - vertex3.y)
+        
+        return one - two
+    }
+    
     private func getX(of index: Int, width: Int) -> Int {
         return index - (getY(of: index, width: width) * width)
     }
@@ -331,7 +362,11 @@ final class Riemersma {
     private func getIndex(x: Int, y: Int, width: Int) -> Int {
         return y * width + x
     }
-    
+
+    private func getIndex(x: Double, y: Double, width: Int) -> Int {
+        return Int(y * Double(width) + x)
+    }
+
     private func getLuminance(for pixel: Int) -> CGFloat {
         return CGFloat(imageDataPointer[pixel]) / CGFloat(255)
     }
