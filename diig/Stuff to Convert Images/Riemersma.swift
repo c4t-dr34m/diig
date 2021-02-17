@@ -206,8 +206,6 @@ final class Riemersma {
                 }
             }
             
-            // let pixelsToFill = totalLuminance // todo: remove, it just explains it
-            
             for inX in stride(from: x[0], to: x[1], by: 1.0) {
                 for inY in stride(from: y[0], to: y[1], by: 1.0) {
                     let pxIndex = getIndex(x: inX, y: inY, width: Int(imageSize.width))
@@ -222,7 +220,7 @@ final class Riemersma {
                         luminance = 0.0
                     }
                     
-                    setLuminance(luminance, for: pxIndex)
+                    setLuminance(luminance, for: pxIndex) // todo: consider this
                 }
             }
 
