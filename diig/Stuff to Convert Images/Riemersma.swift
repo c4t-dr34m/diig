@@ -59,7 +59,7 @@ final class Riemersma {
         self._ditheringProgress = progress
         
         var step = UserDefaults.standard.integer(forKey: "sampling_step")
-        if step < 1 || step > 8 {
+        if step < 1 || step > 21 {
             step = Config.defaultSamplingStep
         }
         self.samplingStep = step
@@ -73,18 +73,17 @@ final class Riemersma {
         NSLog("Sampling step: \(self.samplingStep)")
     }
     
-    public func dither(using path: Path = .rsf) -> CFMutableData { // todo: switch to .hilbert
+    public func dither() -> CFMutableData { // todo: switch to .hilbert
         guard !dithered else {
             return imageData
         }
         
         initWeights()
         
-        switch path {
-        case .hilbert:
-            hilbert()
-        case .rsf:
+        if samplingStep >= 9 {
             rsf()
+        } else {
+            hilbert()
         }
         
         dithered = true
