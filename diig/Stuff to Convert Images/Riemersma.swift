@@ -140,7 +140,7 @@ final class Riemersma {
     // MARK:- Random Space-Filling... something
     
     private func rsf() {
-        let step = 12 // should be divisible by 2, probably.
+        let step = 9
         
         // pick randomly points that would serve to define triangles
         let steppedWidth = Int(imageSize.width / CGFloat(9))
@@ -168,10 +168,6 @@ final class Riemersma {
         
         // apply delaunay to divide whole image into triangles
         let triangles = Delaunay().triangulate(vertices)
-        
-        // compute average luminance for each triangle
-        var triangleLuminancies = [CGFloat]()
-        triangleLuminancies.reserveCapacity(triangles.count)
         
         for i in 0..<triangles.count {
             let triangle = triangles[i]
@@ -211,7 +207,25 @@ final class Riemersma {
                 }
             }
             
-            triangleLuminancies[i] = totalLuminance / totalPixels
+            // let pixelsToFill = totalLuminance // todo: remove, it just explains it
+            
+            for inX in stride(from: x[0], to: x[1], by: 1.0) {
+                for inY in stride(from: y[0], to: y[1], by: 1.0) {
+                    let pxIndex = getIndex(x: inX, y: inY, width: Int(imageSize.width))
+                    let pixel = Point(x: inX, y: inY)
+
+                    guard isInTriangle(pixel, triangle.point1, triangle.point2, triangle.point3) else {
+                        continue
+                    }
+                    
+                    var luminance = totalLuminance / totalPixels
+                    if luminance.isNaN {
+                        luminance = 0.0
+                    }
+                    
+                    setLuminance(luminance, for: pxIndex)
+                }
+            }
 
             // todo: fill triangle with pixels to match average luminance; start from centroid; continue ccw
         }
