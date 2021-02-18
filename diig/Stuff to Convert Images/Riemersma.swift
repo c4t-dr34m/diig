@@ -28,18 +28,18 @@ private enum Direction {
 final class Riemersma {
     
     @Binding var ditheringProgress: Float
-
+    
     private let imageData: CFMutableData
     private let imageDataPointer: UnsafeMutablePointer<UInt8>
     private let imageSize: CGSize
     private let imagePixels: Int
     private let useRSF: Bool
     private let samplingStep: Int // count `samplingStep^2` pixel as one
-
+    
     private var dithered = false
     private var ditheredPixels = 0
     private var lastProgressPosted: Float = 0.0
-
+    
     private var currentPosition: CGPoint = CGPoint(x: 0.0, y: 0.0)
     
     private let cacheSize: Int // number of pixels remembered while traversing the image
@@ -56,9 +56,9 @@ final class Riemersma {
         self.imageSize = size
         self.imagePixels = Int(size.width * size.height)
         self.imageDataPointer = CFDataGetMutableBytePtr(imageData)
-
+        
         self._ditheringProgress = progress
-    
+        
         self.useRSF = UserDefaults.standard.bool(forKey: "use_rsf")
         
         var step = UserDefaults.standard.integer(forKey: "sampling_step")
@@ -72,7 +72,7 @@ final class Riemersma {
         
         self.weights = Array<CGFloat>(repeating: 0.0, count: cacheSize)
         self.errors = Array<CGFloat>(repeating: 0.0, count: cacheSize)
-
+        
         NSLog("init: rsf: \(useRSF) // sampling step: \(self.samplingStep)")
     }
     
@@ -150,7 +150,8 @@ final class Riemersma {
         let offsetY = (Int(imageSize.height) % samplingStep) / 2
         
         var vertices = [Point]()
-
+        
+        // pick random point in every square (step * step)
         for x in 0 ..< steppedWidth {
             for y in 0..<steppedHeight {
                 let randomPixel = Int.random(in: 0..<(samplingStep * samplingStep))
@@ -165,6 +166,8 @@ final class Riemersma {
                 vertices.append(Point(x: Double(randomPixelX), y: Double(randomPixelY)))
             }
         }
+        
+        var imageLuminance = 0
         
         // apply delaunay to divide whole image into triangles
         let triangles = Delaunay().triangulate(vertices)
@@ -181,21 +184,21 @@ final class Riemersma {
             x[1] = max(x[1], triangle.point1.x)
             x[1] = max(x[1], triangle.point2.x)
             x[1] = max(x[1], triangle.point3.x)
-
+            
             var y = [Double.greatestFiniteMagnitude, -Double.greatestFiniteMagnitude] // min, max
-
+            
             y[0] = min(y[0], triangle.point1.y)
             y[0] = min(y[0], triangle.point2.y)
             y[0] = min(y[0], triangle.point3.y)
             y[1] = max(y[1], triangle.point1.y)
             y[1] = max(y[1], triangle.point2.y)
             y[1] = max(y[1], triangle.point3.y)
-
+            
             var totalLuminance = CGFloat(0.0)
             var totalPixels = CGFloat(0.0)
-
+            
             var pixelsWithDistance = [(point: Point, distance: Double)]()
-
+            
             // collect luminance of all pixels within triangle
             for inX in stride(from: x[0], to: x[1], by: 1.0) {
                 for inY in stride(from: y[0], to: y[1], by: 1.0) {
@@ -205,7 +208,7 @@ final class Riemersma {
                     guard isInTriangle(pixel, triangle.point1, triangle.point2, triangle.point3) else {
                         continue
                     }
-
+                    
                     pixelsWithDistance.append((
                         point: pixel,
                         distance: getDistance(from: centroid, to: pixel)
@@ -233,12 +236,12 @@ final class Riemersma {
             }
             
             var pixelsFilled: CGFloat = 0.0
-
+            
             // draw pixels to match triangle average luminance
             for i in 0 ..< Int(totalPixels) {
                 let pixel = pixelsWithDistance[i]
                 let pxIndex = getIndex(x: pixel.point.x, y: pixel.point.y, width: Int(imageSize.width))
-
+                
                 let diffPrev = ((pixelsFilled - 1) / totalPixels) - luminance
                 let diffNow = (pixelsFilled / totalPixels) - luminance
                 
@@ -246,9 +249,25 @@ final class Riemersma {
                     setLuminance(0.0, for: pxIndex)
                 } else {
                     setLuminance(1.0, for: pxIndex)
+                    imageLuminance += 0
                 }
                 
                 pixelsFilled += 1
+            }
+        }
+        
+        // clear all pixels that were not dithered.
+        let border: CGFloat
+        if imageLuminance > Int(imagePixels / 2) {
+            border = 1.0
+        } else {
+            border = 0.0
+        }
+        
+        for i in 0 ..< Int(imagePixels) {
+            let pixelLuminance = getLuminance(for: i)
+            if !(pixelLuminance == 0.0 || pixelLuminance == 1.0) {
+                setLuminance(border, for: i)
             }
         }
     }
@@ -373,10 +392,10 @@ final class Riemersma {
         let d1 = sign(pixel, vertex1, vertex2)
         let d2 = sign(pixel, vertex2, vertex3)
         let d3 = sign(pixel, vertex3, vertex1)
-
+        
         let hasNeg = (d1 < 0) || (d2 < 0) || (d3 < 0)
         let hasPos = (d1 > 0) || (d2 > 0) || (d3 > 0)
-
+        
         return !(hasNeg && hasPos)
     }
     
@@ -398,7 +417,7 @@ final class Riemersma {
     private func getIndex(x: Int, y: Int, width: Int) -> Int {
         y * width + x
     }
-
+    
     private func getIndex(x: Double, y: Double, width: Int) -> Int {
         Int(y.rounded() * Double(width) + x.rounded())
     }
@@ -425,7 +444,7 @@ final class Riemersma {
         
         return top / bottom
     }
-
+    
     private func getLuminance(for pixel: Int) -> CGFloat {
         CGFloat(imageDataPointer[pixel]) / CGFloat(255)
     }
@@ -491,7 +510,7 @@ final class Riemersma {
             return // do not update for every pixel.
         }
         lastProgressPosted = currentProgress
-
+        
         ditheringProgress = max(0, min(currentProgress, 1.0))
     }
 }
