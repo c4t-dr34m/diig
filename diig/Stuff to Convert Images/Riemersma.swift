@@ -59,7 +59,7 @@ final class Riemersma {
         self._ditheringProgress = progress
         
         var step = UserDefaults.standard.integer(forKey: "sampling_step")
-        if step < 1 || step > 21 {
+        if step < 1 || step > 48 {
             step = Config.defaultSamplingStep
         }
         self.samplingStep = step
@@ -130,7 +130,7 @@ final class Riemersma {
         let m: CGFloat = CGFloat(exp(log(Double(weightDiff)) / Double(cacheSize - 1)))
         var v: CGFloat = 1.0
         
-        for i in 0...(cacheSize - 1) {
+        for i in 0 ... cacheSize - 1 {
             weights[i] = v + 0.5
             v *= m
         }
@@ -139,23 +139,21 @@ final class Riemersma {
     // MARK:- Random Space-Filling... something
     
     private func rsf() {
-        let step = 9
-        
         // pick randomly points that would serve to define triangles
         let steppedWidth = Int(imageSize.width / CGFloat(9))
         let steppedHeight = Int(imageSize.height / CGFloat(9))
         
-        let offsetX = (Int(imageSize.width) % step) / 2
-        let offsetY = (Int(imageSize.height) % step) / 2
+        let offsetX = (Int(imageSize.width) % samplingStep) / 2
+        let offsetY = (Int(imageSize.height) % samplingStep) / 2
         
         var vertices = [Point]()
 
-        for x in 0..<steppedWidth {
+        for x in 0 ..< steppedWidth {
             for y in 0..<steppedHeight {
-                let randomPixel = Int.random(in: 0..<(step * step))
+                let randomPixel = Int.random(in: 0..<(samplingStep * samplingStep))
                 
-                let randomPixelX = (x * step) + getX(of: randomPixel, width: step) + offsetX
-                let randomPixelY = (y * step) + getY(of: randomPixel, width: step) + offsetY
+                let randomPixelX = (x * samplingStep) + getX(of: randomPixel, width: samplingStep) + offsetX
+                let randomPixelY = (y * samplingStep) + getY(of: randomPixel, width: samplingStep) + offsetY
                 
                 guard !isOutOfBounds(x: randomPixelX, y: randomPixelY) else {
                     continue
@@ -168,8 +166,9 @@ final class Riemersma {
         // apply delaunay to divide whole image into triangles
         let triangles = Delaunay().triangulate(vertices)
         
-        for i in 0..<triangles.count {
+        for i in 0 ..< triangles.count {
             let triangle = triangles[i]
+            let centroid = getCentroid(of: triangle)
             
             var x = [Double.greatestFiniteMagnitude, -Double.greatestFiniteMagnitude] // min, max
             
@@ -191,7 +190,10 @@ final class Riemersma {
 
             var totalLuminance = CGFloat(0.0)
             var totalPixels = CGFloat(0.0)
-            
+
+            var pixelsWithDistance = [(point: Point, distance: Double)]()
+
+            // collect luminance of all pixels within triangle
             for inX in stride(from: x[0], to: x[1], by: 1.0) {
                 for inY in stride(from: y[0], to: y[1], by: 1.0) {
                     let pxIndex = getIndex(x: inX, y: inY, width: Int(imageSize.width))
@@ -200,31 +202,41 @@ final class Riemersma {
                     guard isInTriangle(pixel, triangle.point1, triangle.point2, triangle.point3) else {
                         continue
                     }
+                    
+                    pixelsWithDistance.append((
+                        point: pixel,
+                        distance: getDistance(from: centroid, to: pixel)
+                    ))
                     
                     totalLuminance += getLuminance(for: pxIndex)
                     totalPixels += 1
                 }
             }
             
-            for inX in stride(from: x[0], to: x[1], by: 1.0) {
-                for inY in stride(from: y[0], to: y[1], by: 1.0) {
-                    let pxIndex = getIndex(x: inX, y: inY, width: Int(imageSize.width))
-                    let pixel = Point(x: inX, y: inY)
-
-                    guard isInTriangle(pixel, triangle.point1, triangle.point2, triangle.point3) else {
-                        continue
-                    }
-                    
-                    var luminance = totalLuminance / totalPixels
-                    if luminance.isNaN {
-                        luminance = 0.0
-                    }
-                    
-                    setLuminance(luminance, for: pxIndex) // todo: consider this
-                }
+            var luminance = totalLuminance / totalPixels
+            if luminance.isNaN {
+                luminance = 0.0
             }
+            
+            pixelsWithDistance = pixelsWithDistance.sorted(by: {
+                $0.distance < $1.distance
+            })
+            
+            var pixelsFilled: CGFloat = 0.0
 
-            // todo: fill triangle with pixels to match average luminance; start from centroid; continue ccw
+            // draw pixels to match triangle average luminance
+            for i in 0 ..< Int(totalPixels) {
+                let pixel = pixelsWithDistance[i]
+                let pxIndex = getIndex(x: pixel.point.x, y: pixel.point.y, width: Int(imageSize.width))
+
+                if pixelsFilled < totalLuminance {
+                    setLuminance(1.0, for: pxIndex) // why it's inverted?
+                } else {
+                    setLuminance(0.0, for: pxIndex)
+                }
+                
+                pixelsFilled += 1
+            }
         }
     }
     
@@ -363,23 +375,37 @@ final class Riemersma {
     }
     
     private func getX(of index: Int, width: Int) -> Int {
-        return index - (getY(of: index, width: width) * width)
+        index - (getY(of: index, width: width) * width)
     }
     
     private func getY(of index: Int, width: Int) -> Int {
-        return Int(Float(index) / Float(width))
+        Int(Float(index) / Float(width))
     }
     
     private func getIndex(x: Int, y: Int, width: Int) -> Int {
-        return y * width + x
+        y * width + x
     }
 
     private func getIndex(x: Double, y: Double, width: Int) -> Int {
-        return Int(y * Double(width) + x)
+        Int(y.rounded() * Double(width) + x.rounded())
+    }
+    
+    private func getCentroid(of triangle: Triangle) -> Point {
+        let x: Double = (triangle.point1.x + triangle.point2.x + triangle.point3.x) / 3.0
+        let y: Double = (triangle.point1.y + triangle.point2.y + triangle.point3.y) / 3.0
+        
+        return Point(x: x, y: y)
+    }
+    
+    private func getDistance(from: Point, to: Point) -> Double {
+        let dx: Double = from.x - to.x
+        let dy: Double = from.y - to.y
+        
+        return ((dx * dx) + (dy * dy)).squareRoot()
     }
 
     private func getLuminance(for pixel: Int) -> CGFloat {
-        return CGFloat(imageDataPointer[pixel]) / CGFloat(255)
+        CGFloat(imageDataPointer[pixel]) / CGFloat(255)
     }
     
     private func getLuminance(for pixel: CGPoint) -> CGFloat {
