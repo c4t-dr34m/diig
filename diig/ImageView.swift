@@ -133,7 +133,7 @@ struct ImageView: View {
             
             HStack {
                 HStack {
-                    Text(useRSF ? "RSF" : "Hilbert")
+                    Text(useRSF ? "halftone" : "dither")
                         .font(.system(size: 12))
                         .foregroundColor(colorScheme == .dark ? .black : .white)
                     
@@ -187,7 +187,7 @@ struct ImageView: View {
             if ditheringProgress <= 0.01 {
                 label = "mapping pixels..."
             } else {
-                label = "dithering image..."
+                label = "processing image..."
             }
             
             let view = ZStack {

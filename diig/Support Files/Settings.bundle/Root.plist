@@ -10,7 +10,7 @@
 			<key>Type</key>
 			<string>PSToggleSwitchSpecifier</string>
 			<key>Title</key>
-			<string>Use RSF</string>
+			<string>Halftone</string>
 			<key>Key</key>
 			<string>use_rsf</string>
 			<key>DefaultValue</key>
