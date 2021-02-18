@@ -21,6 +21,9 @@ struct ImageView: View {
     @State private var imageDithered: UIImage? = nil
     @State private var frameColor: UIColor? = .white
     
+    @AppStorage("use_rsf", store: UserDefaults.standard) var useRSF: Bool = false
+    @AppStorage("sampling_step", store: UserDefaults.standard) var step: Double = 2
+    
     var body: some View {
         NavigationView {
             ZStack {
@@ -117,9 +120,39 @@ struct ImageView: View {
                 
                 emptyView
                 progressView
+                settingsView
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .accentColor(colorScheme == .dark ? .white : .black)
+    }
+    
+    private var settingsView: some View {
+        VStack {
+            Spacer()
+            
+            HStack {
+                HStack {
+                    Text(useRSF ? "RSF" : "Hilbert")
+                        .font(.system(size: 12))
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                    
+                    Divider()
+                        .frame(height: 16)
+                    
+                    Text("\(max(1, min(Int(step), 48))) px")
+                        .font(.system(size: 12))
+                        .foregroundColor(colorScheme == .dark ? .black : .white)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 2)
+                .background(colorScheme == .dark ? Color.white.opacity(0.25) : Color.black.opacity(0.25))
+                .cornerRadius(12, corners: [.topRight, .bottomRight])
+                
+                Spacer()
+            }
+        }
+        .padding(.vertical, 8)
     }
     
     private var emptyView: some View {
@@ -137,9 +170,7 @@ struct ImageView: View {
             
             return AnyView(view)
         } else {
-            let view = EmptyView()
-            
-            return AnyView(view)
+            return AnyView(EmptyView())
         }
     }
     
@@ -164,15 +195,13 @@ struct ImageView: View {
                     .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
                     .padding(.horizontal, 50)
             }
-            .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .edgesIgnoringSafeArea(.all)
             .background(background)
             
             return AnyView(view)
         } else {
-            let view = EmptyView()
-            
-            return AnyView(view)
+            return AnyView(EmptyView())
         }
     }
     
@@ -181,7 +210,7 @@ struct ImageView: View {
             let view = Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
-                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
             
             return AnyView(view)
@@ -189,16 +218,12 @@ struct ImageView: View {
             let view = Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
-                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .edgesIgnoringSafeArea(.all)
             
             return AnyView(view)
         } else {
-            let view = EmptyView()
-                .frame(minWidth: 0, maxWidth: .infinity, maxHeight: .infinity)
-                .edgesIgnoringSafeArea(.all)
-            
-            return AnyView(view)
+            return AnyView(EmptyView())
         }
     }
     

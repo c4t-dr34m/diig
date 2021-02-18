@@ -14,7 +14,7 @@
 			<key>Key</key>
 			<string>use_rsf</string>
 			<key>DefaultValue</key>
-			<true/>
+			<false/>
 		</dict>
 		<dict>
 			<key>Title</key>

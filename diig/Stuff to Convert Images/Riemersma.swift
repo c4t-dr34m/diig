@@ -12,11 +12,6 @@ import UIKit
 import SwiftUI
 import Delaunay
 
-public enum Path {
-    case hilbert
-    case rsf
-}
-
 private enum Direction {
     case none
     case left
@@ -60,8 +55,7 @@ final class Riemersma {
         self._ditheringProgress = progress
         
         self.useRSF = UserDefaults.standard.bool(forKey: "use_rsf")
-        
-        var step = UserDefaults.standard.integer(forKey: "sampling_step")
+        var step = Int(UserDefaults.standard.double(forKey: "sampling_step"))
         if step < 1 || step > 48 {
             step = Config.defaultSamplingStep
         }

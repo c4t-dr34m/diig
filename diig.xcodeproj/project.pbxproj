@@ -8,11 +8,12 @@
 
 /* Begin PBXBuildFile section */
 		210E762325DD95690027B6E7 /* Delaunay in Frameworks */ = {isa = PBXBuildFile; productRef = 210E762225DD95690027B6E7 /* Delaunay */; };
+		211DD44F25DEEDEC00F180AC /* View+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 211DD44E25DEEDEC00F180AC /* View+Extensions.swift */; };
 		215298FF25DB04E5002288D3 /* VImageBuffers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 215298FE25DB04E5002288D3 /* VImageBuffers.swift */; };
 		217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */; };
 		21BD375D25D97FA700F21749 /* Settings.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 21BD375C25D97FA700F21749 /* Settings.bundle */; };
 		21C474EE25D7D70300B713E6 /* Transformations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474ED25D7D70300B713E6 /* Transformations.swift */; };
-		21C474FD25D7EBE600B713E6 /* UIImage+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */; };
+		21C474FD25D7EBE600B713E6 /* UIImage+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C474FC25D7EBE600B713E6 /* UIImage+Extensions.swift */; };
 		21C4750525D80A2E00B713E6 /* Riemersma.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C4750425D80A2E00B713E6 /* Riemersma.swift */; };
 		21C4751325D848C900B713E6 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21C4751225D848C900B713E6 /* Config.swift */; };
 		21EC580125D6EFC7002E248A /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 21EC580025D6EFC7002E248A /* ImagePicker.swift */; };
@@ -23,11 +24,12 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		211DD44E25DEEDEC00F180AC /* View+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "View+Extensions.swift"; sourceTree = "<group>"; };
 		215298FE25DB04E5002288D3 /* VImageBuffers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VImageBuffers.swift; sourceTree = "<group>"; };
 		217E0C3525D7C9BA007920B8 /* ImagePickerCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePickerCoordinator.swift; sourceTree = "<group>"; };
 		21BD375C25D97FA700F21749 /* Settings.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = Settings.bundle; sourceTree = "<group>"; };
 		21C474ED25D7D70300B713E6 /* Transformations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Transformations.swift; sourceTree = "<group>"; };
-		21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extension.swift"; sourceTree = "<group>"; };
+		21C474FC25D7EBE600B713E6 /* UIImage+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImage+Extensions.swift"; sourceTree = "<group>"; };
 		21C4750425D80A2E00B713E6 /* Riemersma.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Riemersma.swift; sourceTree = "<group>"; };
 		21C4751225D848C900B713E6 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		21EC580025D6EFC7002E248A /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
@@ -75,7 +77,8 @@
 		21C474FB25D7EBCD00B713E6 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
-				21C474FC25D7EBE600B713E6 /* UIImage+Extension.swift */,
+				21C474FC25D7EBE600B713E6 /* UIImage+Extensions.swift */,
+				211DD44E25DEEDEC00F180AC /* View+Extensions.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -197,9 +200,10 @@
 			files = (
 				215298FF25DB04E5002288D3 /* VImageBuffers.swift in Sources */,
 				217E0C3625D7C9BA007920B8 /* ImagePickerCoordinator.swift in Sources */,
+				211DD44F25DEEDEC00F180AC /* View+Extensions.swift in Sources */,
 				21EC580125D6EFC7002E248A /* ImagePicker.swift in Sources */,
 				21F00E6A25D6E41600C2C281 /* ImageView.swift in Sources */,
-				21C474FD25D7EBE600B713E6 /* UIImage+Extension.swift in Sources */,
+				21C474FD25D7EBE600B713E6 /* UIImage+Extensions.swift in Sources */,
 				21F00E6825D6E41600C2C281 /* DiigApp.swift in Sources */,
 				21C4751325D848C900B713E6 /* Config.swift in Sources */,
 				21C4750525D80A2E00B713E6 /* Riemersma.swift in Sources */,
@@ -261,7 +265,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -316,7 +320,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 14.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 14.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
