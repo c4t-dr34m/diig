@@ -7,6 +7,16 @@
 	<key>PreferenceSpecifiers</key>
 	<array>
 		<dict>
+			<key>Type</key>
+			<string>PSToggleSwitchSpecifier</string>
+			<key>Title</key>
+			<string>Use RSF</string>
+			<key>Key</key>
+			<string>use_rsf</string>
+			<key>DefaultValue</key>
+			<true/>
+		</dict>
+		<dict>
 			<key>Title</key>
 			<string>Sampling step</string>
 			<key>Type</key>

@@ -4,7 +4,7 @@
 //
 //  Created by Radovan Paška on 13.02.2021.
 //
-//  implementation if riemersma dither: https://www.compuphase.com/riemer.htm
+//  implementation of riemersma dither: https://www.compuphase.com/riemer.htm
 //
 
 import Foundation
@@ -33,6 +33,7 @@ final class Riemersma {
     private let imageDataPointer: UnsafeMutablePointer<UInt8>
     private let imageSize: CGSize
     private let imagePixels: Int
+    private let useRSF: Bool
     private let samplingStep: Int // count `samplingStep^2` pixel as one
 
     private var dithered = false
@@ -57,6 +58,8 @@ final class Riemersma {
         self.imageDataPointer = CFDataGetMutableBytePtr(imageData)
 
         self._ditheringProgress = progress
+    
+        self.useRSF = UserDefaults.standard.bool(forKey: "use_rsf")
         
         var step = UserDefaults.standard.integer(forKey: "sampling_step")
         if step < 1 || step > 48 {
@@ -70,17 +73,17 @@ final class Riemersma {
         self.weights = Array<CGFloat>(repeating: 0.0, count: cacheSize)
         self.errors = Array<CGFloat>(repeating: 0.0, count: cacheSize)
 
-        NSLog("Sampling step: \(self.samplingStep)")
+        NSLog("init: rsf: \(useRSF) // sampling step: \(self.samplingStep)")
     }
     
-    public func dither() -> CFMutableData { // todo: switch to .hilbert
+    public func dither() -> CFMutableData {
         guard !dithered else {
             return imageData
         }
         
         initWeights()
         
-        if samplingStep >= 9 {
+        if useRSF {
             rsf()
         } else {
             hilbert()
@@ -140,8 +143,8 @@ final class Riemersma {
     
     private func rsf() {
         // pick randomly points that would serve to define triangles
-        let steppedWidth = Int(imageSize.width / CGFloat(9))
-        let steppedHeight = Int(imageSize.height / CGFloat(9))
+        let steppedWidth = Int((imageSize.width / CGFloat(samplingStep)).rounded())
+        let steppedHeight = Int((imageSize.height / CGFloat(samplingStep)).rounded())
         
         let offsetX = (Int(imageSize.width) % samplingStep) / 2
         let offsetY = (Int(imageSize.height) % samplingStep) / 2
@@ -202,7 +205,7 @@ final class Riemersma {
                     guard isInTriangle(pixel, triangle.point1, triangle.point2, triangle.point3) else {
                         continue
                     }
-                    
+
                     pixelsWithDistance.append((
                         point: pixel,
                         distance: getDistance(from: centroid, to: pixel)
@@ -218,9 +221,16 @@ final class Riemersma {
                 luminance = 0.0
             }
             
-            pixelsWithDistance = pixelsWithDistance.sorted(by: {
-                $0.distance < $1.distance
-            })
+            // use different start of drawing to keep image structure nice
+            if luminance > 0.5 {
+                pixelsWithDistance = pixelsWithDistance.sorted(by: {
+                    $0.distance > $1.distance
+                })
+            } else {
+                pixelsWithDistance = pixelsWithDistance.sorted(by: {
+                    $0.distance < $1.distance
+                })
+            }
             
             var pixelsFilled: CGFloat = 0.0
 
@@ -237,7 +247,6 @@ final class Riemersma {
                 } else {
                     setLuminance(1.0, for: pxIndex)
                 }
-                // todo: ꜛ this way it creates inverted image. it draws correctly black pixels.
                 
                 pixelsFilled += 1
             }
@@ -406,6 +415,15 @@ final class Riemersma {
         let dy: Double = from.y - to.y
         
         return ((dx * dx) + (dy * dy)).squareRoot()
+    }
+    
+    private func getDistance(from point: Point, lineA: Point, lineB: Point) -> Double {
+        let top: Double = ((lineB.x - lineA.x) * (lineA.y - point.y)) - ((lineA.x - point.x) * (lineB.y - lineA.y)).magnitude
+        let xDiff: Double = lineB.x - lineA.x
+        let yDiff: Double = lineB.y - lineA.y
+        let bottom: Double = ((xDiff * xDiff) + (yDiff * yDiff)).squareRoot()
+        
+        return top / bottom
     }
 
     private func getLuminance(for pixel: Int) -> CGFloat {
