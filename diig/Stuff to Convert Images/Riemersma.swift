@@ -213,7 +213,7 @@ final class Riemersma {
                 }
             }
             
-            var luminance = totalLuminance / totalPixels
+            var luminance = CGFloat(1.0) - (totalLuminance / totalPixels)
             if luminance.isNaN {
                 luminance = 0.0
             }
@@ -229,11 +229,15 @@ final class Riemersma {
                 let pixel = pixelsWithDistance[i]
                 let pxIndex = getIndex(x: pixel.point.x, y: pixel.point.y, width: Int(imageSize.width))
 
-                if pixelsFilled < totalLuminance {
-                    setLuminance(1.0, for: pxIndex) // why it's inverted?
-                } else {
+                let diffPrev = ((pixelsFilled - 1) / totalPixels) - luminance
+                let diffNow = (pixelsFilled / totalPixels) - luminance
+                
+                if diffNow <= 0 || (diffPrev > 0 && diffNow < diffPrev) {
                     setLuminance(0.0, for: pxIndex)
+                } else {
+                    setLuminance(1.0, for: pxIndex)
                 }
+                // todo: ꜛ this way it creates inverted image. it draws correctly black pixels.
                 
                 pixelsFilled += 1
             }
