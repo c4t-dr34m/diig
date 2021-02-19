@@ -29,6 +29,7 @@ final class Riemersma {
     private let imageSize: CGSize
     private let imagePixels: Int
     private let useRSF: Bool
+    private let useCircles: Bool
     private let samplingStep: Int // count `samplingStep^2` pixel as one
     
     private var dithered = false
@@ -55,6 +56,7 @@ final class Riemersma {
         self._ditheringProgress = progress
         
         self.useRSF = UserDefaults.standard.bool(forKey: "use_rsf")
+        self.useCircles = UserDefaults.standard.bool(forKey: "use_circles")
         var step = Int(UserDefaults.standard.double(forKey: "sampling_step"))
         if step < 1 || step > 48 {
             step = Config.defaultSamplingStep
@@ -67,7 +69,7 @@ final class Riemersma {
         self.weights = Array<CGFloat>(repeating: 0.0, count: cacheSize)
         self.errors = Array<CGFloat>(repeating: 0.0, count: cacheSize)
         
-        NSLog("init: rsf: \(useRSF) // sampling step: \(self.samplingStep)")
+        NSLog("init: rsf: \(useRSF) // circles: \(useCircles) // sampling step: \(self.samplingStep)")
     }
     
     public func dither() -> CFMutableData {
@@ -203,10 +205,24 @@ final class Riemersma {
                         continue
                     }
                     
-                    pixelsWithDistance.append((
-                        point: pixel,
-                        distance: getDistance(from: centroid, to: pixel)
-                    ))
+                    if useCircles {
+                        // distance from vertices
+                        let dstV1 = getDistance(from: pixel, to: triangle.point1)
+                        let dstV2 = getDistance(from: pixel, to: triangle.point2)
+                        let dstV3 = getDistance(from: pixel, to: triangle.point3)
+                        
+                        let dst = min(dstV1, min(dstV2, dstV3))
+                        pixelsWithDistance.append((
+                            point: pixel,
+                            distance: dst
+                        ))
+                    } else {
+                        // distance from centroid
+                        pixelsWithDistance.append((
+                            point: pixel,
+                            distance: getDistance(from: centroid, to: pixel)
+                        ))
+                    }
                     
                     totalLuminance += getLuminance(for: pxIndex)
                     totalPixels += 1
@@ -219,7 +235,7 @@ final class Riemersma {
             }
             
             // use different start of drawing to keep image structure nice
-            if luminance > 0.5 {
+            if luminance > 0.5 || useCircles {
                 pixelsWithDistance = pixelsWithDistance.sorted(by: {
                     $0.distance > $1.distance
                 })

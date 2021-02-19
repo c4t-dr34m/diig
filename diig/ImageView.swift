@@ -22,6 +22,7 @@ struct ImageView: View {
     @State private var frameColor: UIColor? = .white
     
     @AppStorage("use_rsf", store: UserDefaults.standard) var useRSF: Bool = false
+    @AppStorage("use_circles", store: UserDefaults.standard) var useCircles: Bool = false
     @AppStorage("sampling_step", store: UserDefaults.standard) var step: Double = 2
     
     var body: some View {
@@ -126,6 +127,18 @@ struct ImageView: View {
         }
         .accentColor(colorScheme == .dark ? .white : .black)
     }
+        
+    private var algorithmLabel: String {
+        if useRSF {
+            if useCircles {
+                return "○ halftone"
+            } else {
+                return "△ halftone"
+            }
+        } else {
+            return "■ dither"
+        }
+    }
     
     private var settingsView: some View {
         VStack {
@@ -133,7 +146,7 @@ struct ImageView: View {
             
             HStack {
                 HStack {
-                    Text(useRSF ? "halftone" : "dither")
+                    Text(algorithmLabel)
                         .font(.system(size: 12))
                         .foregroundColor(colorScheme == .dark ? .black : .white)
                     
